@@ -23,18 +23,11 @@ public class RoutingTable {
         int index=1;
         while (index<PSC.getNUMBER_OF_NODES() && index<=PSC.getLOG_N()){
             int max_N = PSC.getMAX_N();
-            int nodeName =((int) Math.pow(2, index-1))% max_N;
+            int nodeName = (currentNode+((int) Math.pow(2, index-1)))% max_N;
             getNextEntry(nodeName, PSC, max_N);
             index+=1;
         }
-        printFingerTable();
-
-    }
-    private void printFingerTable(){
-        System.out.println();
-        for (Map.Entry<Integer, ActorRef> actor : fingerTable.entrySet()){
-            System.out.println("Finger Table\n current node: "+currentNode+"\tKey :"+actor.getKey());
-        }
+//        printFingerTable();
     }
     private void getNextEntry(int nodeName, PrimaryServerClass PSC, int max_N){
         Map.Entry<Integer, ActorRef> nextEntry = PSC.getNodeList().ceilingEntry(nodeName);
@@ -42,6 +35,13 @@ public class RoutingTable {
             fingerTable.put(nextEntry.getKey(), nextEntry.getValue());
         }else{
             getNextEntry((nodeName+1)%max_N, PSC, max_N);
+        }
+    }
+    public void printFingerTable(){
+        System.out.println("****Finger Table for Node:"+currentNode+" is :********");
+
+        for (Map.Entry<Integer, ActorRef> actor : fingerTable.entrySet()){
+            System.out.println("\t\tcurrent node: "+currentNode+"\tMapped Node :"+actor.getKey());
         }
     }
     public void updateFingerTable(){
@@ -54,15 +54,14 @@ public class RoutingTable {
     }
     public void informActorsToUpdateRoutingTable(){
         int index=1;
-        int node = currentNode;
         while (index<PSC.getNUMBER_OF_NODES() && index<=PSC.getLOG_N()){
-            node = node - ((int) Math.pow(2, index-1));
+            int node = currentNode - ((int) Math.pow(2, index-1));
             if(node<0){
-                node = PSC.getNUMBER_OF_NODES()-node;
+                node = PSC.getMAX_N()-node;
             }
             Map.Entry<Integer, ActorRef> nodeToInform = PSC.getNodeList().floorEntry(node);
             if(nodeToInform!=null && nodeToInform.getKey()!=currentNode){
-                System.out.println("Informing actor with key :"+nodeToInform.getKey()+" to update!");
+//                System.out.println("Informing actor with key :"+nodeToInform.getKey()+" to update!");
                 nodeToInform.getValue().tell("updateFingerTable", ActorRef.noSender());
             }
             index+=1;
@@ -77,21 +76,15 @@ public class RoutingTable {
         }
         return -1;
     }
+    public ActorRef getNearestActorFromKey(int key){
+        if(fingerTable.size()>0){
+            return fingerTable.get(findNeareastNodeKey(key));
+        }
+        return null;
+    }
     public ActorRef getActorRefFromKey(int key){
         if(fingerTable.containsKey(key))
             return fingerTable.get(key);
         return null;
     }
-    /*private void removeFromFingerTable(){
-        if(fingerTable.size()<=PSC.getLOG_N()){
-            return;
-        }
-        int index=0;
-        while (index<PSC.getLOG_N()){
-            int key = (currentNode+ (int) Math.pow(2, index))%PSC.getMAX_N();
-            if(true){
-
-            }
-        }
-    }*/
 }
