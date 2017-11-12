@@ -13,7 +13,7 @@ public final class PrimaryServerClass {
     private static PrimaryServerClass ourInstance = new PrimaryServerClass();
     private ActorSystem system = ActorSystem.create("Chord_Algorithm");
     private TreeMap<Integer, ActorRef> nodeList = new TreeMap<>();
-    private int MAX_N= 1024;
+    private int MAX_N= (1<<10);
     private int LOG_N = getLOG_N_BASE_2();
     private int NUMBER_OF_NODES = 0;
     public static PrimaryServerClass getInstance() {

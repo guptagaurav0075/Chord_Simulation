@@ -59,6 +59,7 @@ class NodeAsServer {
     }
 
     private void handleFile(int choice) {
+        System.out.println("Kindly enter the name of the file with full path");
     }
     private void returnBackAsAdministrator() throws InterruptedException {
         TimeUnit.SECONDS.sleep(5);
