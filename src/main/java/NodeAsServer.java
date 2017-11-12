@@ -52,13 +52,11 @@ class NodeAsServer {
         String destinationNode = in.next();
         System.out.println("Destination Node entered is :"+destinationNode);
         currentNode.tell(new DestinationNode(String.valueOf(nodeKey), destinationNode.trim(), 0, "CheckHopCount"), ActorRef.noSender());
-        returnBackAsAdministrator();
     }
     private void printFingerTable() throws InterruptedException {
         System.out.println();
         currentNode.tell("printRoutingTable", ActorRef.noSender());
         System.out.println();
-        returnBackAsAdministrator();
     }
 
     private void handleFile(int choice) throws IOException, NoSuchAlgorithmException, InterruptedException {

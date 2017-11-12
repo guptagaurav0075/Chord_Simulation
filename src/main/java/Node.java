@@ -21,7 +21,7 @@ public class Node extends UntypedAbstractActor{
         this.nfo = new NodeFileOperations(name);
         fingerTable = new RoutingTable(name, getSelf());
         fingerTable.informActorsToUpdateRoutingTable();
-        fingerTable.loadBalance(nfo);
+//        fingerTable.loadBalance(nfo);
     }
     @Override
     public void onReceive(Object msg) throws Throwable {
@@ -41,16 +41,19 @@ public class Node extends UntypedAbstractActor{
             }
             else if(msg.equals("printRoutingTable")){
                 fingerTable.printFingerTable();
+                getSelf().tell("useAsAdministrator", ActorRef.noSender());
             }
         }
         else if(msg instanceof DestinationNode){
             if(((DestinationNode) msg).getDestinationNode().equals(name)){
-                System.out.println("Number Of Hops to Reach from source node: "+((DestinationNode) msg).getSourceNode()+" to destination node: "+((DestinationNode) msg).getDestinationNode()+" is "+((DestinationNode) msg).getHopCount());
                 if(((DestinationNode) msg).getPurpose().equals("RunAsServer")){
                     getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("DoneLoadBalance")){
                     nfo.doneLoadBalance();
                     getSelf().tell("runInGeneral", ActorRef.noSender());
+                }else if(((DestinationNode) msg).getPurpose().equals("CheckHopCount")){
+                    System.out.println("Number Of Hops to Reach from source node: "+((DestinationNode) msg).getSourceNode()+" to destination node: "+((DestinationNode) msg).getDestinationNode()+" is "+((DestinationNode) msg).getHopCount());
+                    runAsServerChoice(name, ((DestinationNode) msg).getSourceNode());
                 }
             }else if( ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getLOG_N() || ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getNUMBER_OF_NODES()-1){
                 System.out.println("No such Destination Node exist");
