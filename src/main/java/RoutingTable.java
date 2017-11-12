@@ -1,6 +1,8 @@
 import akka.actor.ActorRef;
 import akka.japi.pf.FI;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -114,7 +116,7 @@ public class RoutingTable {
             return fingerTable.get(key);
         return null;
     }
-    public void loadBalance(NodeFileOperations nfo){
+    public void loadBalance(NodeFileOperations nfo) throws IOException, NoSuchAlgorithmException {
         //function checks if there are any file on the server that were supposed to be for the current server
         if(fingerTable.size()>0){
             int next = (currentNode + (int)Math.pow(2,0))%PSC.getMAX_N();

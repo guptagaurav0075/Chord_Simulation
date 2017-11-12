@@ -15,7 +15,7 @@ public class Node extends UntypedAbstractActor{
     String name;
     Scanner in = new Scanner(System.in);
     NodeFileOperations nfo;
-    public Node() {
+    public Node() throws IOException, NoSuchAlgorithmException {
         name = self().path().name();
         System.out.println("Creating New Node with key :"+name);
         this.nfo = new NodeFileOperations(name);
@@ -174,6 +174,7 @@ public class Node extends UntypedAbstractActor{
         else{
             addMoreNodes();
         }
+        return;
     }
     private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException {
         for (int i = 0; i < numOfNodes; i++) {
