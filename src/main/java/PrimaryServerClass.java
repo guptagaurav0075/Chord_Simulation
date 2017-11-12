@@ -40,9 +40,9 @@ public final class PrimaryServerClass {
         getInstance().stoppingExecution();
     }
     private void stoppingExecution(){
-        for(Map.Entry<Integer, ActorRef> entry :getInstance().getNodeList().entrySet()){
-            getInstance().getSystem().stop(entry.getValue());
-            getInstance().getNodeList().remove(entry.getKey());
+        for(Map.Entry<Integer, ActorRef> entry :nodeList.entrySet()){
+            system.stop(entry.getValue());
+            nodeList.remove(entry.getKey());
         }
     }
 
@@ -76,10 +76,16 @@ public final class PrimaryServerClass {
     public void checkAndGenerateNode() throws IOException, NoSuchAlgorithmException {
         String IP = utl.generateIP();
         String hash = utl.generateHashString(IP, LOG_N);
-        if(getInstance().getNodeList().size()>0 && getNodeList().containsKey(Integer.valueOf(hash)) && NUMBER_OF_NODES<MAX_N){
+        if(getInstance().getNodeList().size()>0 && getNodeList().containsKey(Integer.valueOf(hash))){
             checkAndGenerateNode();
+            return;
         }
         addNode(hash);
+    }
+    public void generateRandomServers(int numberOfServers) throws IOException, NoSuchAlgorithmException {
+        for(int i=0; i<numberOfServers; i++){
+            checkAndGenerateNode();
+        }
     }
     private void createSourceDirectory(){
 
@@ -93,7 +99,7 @@ public final class PrimaryServerClass {
     }
 
     public static void returnFirstNodeAsServer() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.SECONDS.sleep(1);
         getInstance().getNodeList().firstEntry().getValue().tell("runInGeneral", ActorRef.noSender());
     }
     private int getLOG_N_BASE_2() {

@@ -19,7 +19,7 @@ public class Node extends UntypedAbstractActor{
         name = self().path().name();
         System.out.println("Creating New Node with key :"+name);
         this.nfo = new NodeFileOperations(name);
-        fingerTable = new RoutingTable(name);
+        fingerTable = new RoutingTable(name, getSelf());
         fingerTable.informActorsToUpdateRoutingTable();
         fingerTable.loadBalance(nfo);
     }
@@ -50,6 +50,7 @@ public class Node extends UntypedAbstractActor{
                     getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("DoneLoadBalance")){
                     nfo.doneLoadBalance();
+                    getSelf().tell("runInGeneral", ActorRef.noSender());
                 }
             }else if( ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getLOG_N() || ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getNUMBER_OF_NODES()-1){
                 System.out.println("No such Destination Node exist");
@@ -71,15 +72,20 @@ public class Node extends UntypedAbstractActor{
                     nfo.searchFile((FileOperations) msg);
                 }
                 else if(((FileOperations) msg).getPurpose().equals("LoadBalance")){
+                    System.out.println("Load Balancing called for Current Key :"+name);
+                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
+                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
                     loadBalance((FileOperations) msg);
                 }
                 runAsServerChoice(name, ((FileOperations) msg).getSourceNode());
-            }else if(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getHashValue()))!=-1){
-                ((FileOperations) msg).setOptimizedHashValue(String.valueOf(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getHashValue()))));
-                fingerTable.getNearestActorFromKey(Integer.parseInt(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
-            }else if(fingerTable.fingerTable.size()==0){
+            }
+            else if(fingerTable.fingerTable.size()==0){
                 ((FileOperations) msg).setOptimizedHashValue(name);
                 getSelf().tell(msg, ActorRef.noSender());
+            }
+            else if(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue()))!=-1){
+                ((FileOperations) msg).setOptimizedHashValue(String.valueOf(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue()))));
+                fingerTable.getNearestActorFromKey(Integer.parseInt(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
             }
             else{
                 fingerTable.getNearestActorFromKey(Integer.parseInt(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
@@ -89,6 +95,7 @@ public class Node extends UntypedAbstractActor{
     }
     private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
         nfo.transferFiles(msg);
+        System.out.println("In Load Balance Function");
         DestinationNode temp = new DestinationNode(name,msg.getSourceNode(),0,"DoneLoadBalance");
         getSelf().tell(temp, ActorRef.noSender());
 
@@ -129,7 +136,7 @@ public class Node extends UntypedAbstractActor{
     private void removeNodes() {
         System.out.println("\nSelect one of the choices mentioned below\n");
         System.out.println("\t\t1->Remove a specific server");
-        System.out.println("\t\t1->Remove a random server");
+        System.out.println("\t\t2->Remove a random server");
         int choice = in.nextInt();
         if(choice == 1 ) {
             System.out.println("Enter the name of the server you would like to remove");

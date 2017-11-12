@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 public class FileOperations {
     String fileName;
     String sourcePath;
-    String DestinationPath;
+    String destinationPath;
     String hashValue;
     String optimizedHashValue;
     String purpose;
@@ -71,7 +71,7 @@ public class FileOperations {
     }
 
     public String getDestinationPath() {
-        return DestinationPath;
+        return destinationPath;
     }
 
     public String getHashValue() {

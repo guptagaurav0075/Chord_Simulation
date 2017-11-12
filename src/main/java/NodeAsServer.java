@@ -67,13 +67,13 @@ class NodeAsServer {
         if(choice==1){
             System.out.println("\nKindly enter the name of the file with full path\n");
             String fileName = in.next();
-            File file = new File(fileName);
+            File file = new File(fileName.trim());
             fo = new FileOperations(file.getName(), file.getAbsolutePath(), utl.generateHashString(file.getName(), PrimaryServerClass.getInstance().getLOG_N()),"Add", String.valueOf(nodeKey));
 
         }else{
             System.out.println("\nKindly enter the name of the file you would like to search\n");
             String fileName = in.next();
-            fo = new FileOperations(fileName,utl.generateHashString(fileName,PrimaryServerClass.getInstance().getLOG_N()), "Search", String.valueOf(nodeKey));
+            fo = new FileOperations(fileName.trim(),utl.generateHashString(fileName.trim(),PrimaryServerClass.getInstance().getLOG_N()), "Search", String.valueOf(nodeKey));
         }
         currentNode.tell(fo, ActorRef.noSender());
     }
@@ -84,7 +84,7 @@ class NodeAsServer {
         }
     }
     private void returnBackAsAdministrator() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.SECONDS.sleep(1);
         currentNode.tell("useAsAdministrator", ActorRef.noSender());
     }
 }

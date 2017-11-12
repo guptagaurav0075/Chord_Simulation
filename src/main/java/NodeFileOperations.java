@@ -114,19 +114,24 @@ class NodeFileOperations {
             TreeSet<String> setOfFiles = entry.getValue();
             while (setOfFiles.size()>0){
                 String fileName = setOfFiles.first();
+                System.out.println("File to be transferred is: "+fileName);
                 File sourceFile = new File(directoryPath+"/"+fileName);
+                System.out.println("SourcePath is:"+sourceFile.getAbsolutePath());
                 File destination = new File(fo.getSourcePath()+"/"+fileName);
+                System.out.println("destination is:"+destination.getAbsolutePath());
                 fileTransferAndRemove(sourceFile, destination);
+                setOfFiles.remove(setOfFiles.first());
             }
         }
+        entry = file_hash_value_to_fileName.floorEntry(hash);
     }
 
     public void doneLoadBalance() throws IOException, NoSuchAlgorithmException {
+        System.out.println("Done Load Balancing");
         File currDir = new File(directoryPath);
         getAllFiles(currDir);
     }
     private void getAllFiles(File curDir) throws IOException, NoSuchAlgorithmException {
-
         File[] filesList = curDir.listFiles();
         for(File f : filesList){
             if(f.isFile()){
@@ -141,6 +146,5 @@ class NodeFileOperations {
                 files.add(f.getName());
             }
         }
-
     }
 }

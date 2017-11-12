@@ -13,12 +13,14 @@ import java.util.TreeMap;
 public class RoutingTable {
     TreeMap<Integer, ActorRef> fingerTable;
     int currentNode;
+    ActorRef selfNodeRef;
     private PrimaryServerClass PSC = PrimaryServerClass.getInstance();
 
 
-    public RoutingTable(String actorName) {
+    public RoutingTable(String actorName, ActorRef selfNodeRef) {
         this.currentNode = Integer.valueOf(actorName);
         this.fingerTable = new TreeMap<Integer, ActorRef>();
+        this.selfNodeRef = selfNodeRef;
         GenerateRoutingTable();
     }
     private void GenerateRoutingTable(){
@@ -125,7 +127,7 @@ public class RoutingTable {
                 entry= fingerTable.firstEntry();
             }
             FileOperations msg = new FileOperations(entry.getKey(), String.valueOf(currentNode), nfo.directoryPath, "LoadBalance");
-            entry.getValue().tell(msg, ActorRef.noSender());
+            selfNodeRef.tell(msg, ActorRef.noSender());
         }
     }
 }
