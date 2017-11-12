@@ -1,6 +1,8 @@
 import akka.actor.ActorRef;
+import akka.japi.pf.FI;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 /**
@@ -30,7 +32,7 @@ public class RoutingTable {
 //        printFingerTable();
     }
     private void getNextEntry(int nodeName, PrimaryServerClass PSC, int max_N){
-        Map.Entry<Integer, ActorRef> nextEntry = PSC.getNodeList().ceilingEntry(nodeName);
+        Entry<Integer, ActorRef> nextEntry = PSC.getNodeList().ceilingEntry(nodeName);
         if(nextEntry!=null &&  !fingerTable.containsKey(nextEntry.getKey()) && nextEntry.getKey()!=this.currentNode){
             fingerTable.put(nextEntry.getKey(), nextEntry.getValue());
         }else{
@@ -40,7 +42,7 @@ public class RoutingTable {
     public void printFingerTable(){
         System.out.println("****Finger Table for Node:"+currentNode+" is :********");
 
-        for (Map.Entry<Integer, ActorRef> actor : fingerTable.entrySet()){
+        for (Entry<Integer, ActorRef> actor : fingerTable.entrySet()){
             System.out.println("\t\tcurrent node: "+currentNode+"\tMapped Node :"+actor.getKey());
         }
     }
@@ -59,7 +61,7 @@ public class RoutingTable {
             if(node<0){
                 node = PSC.getMAX_N()-node;
             }
-            Map.Entry<Integer, ActorRef> nodeToInform = PSC.getNodeList().floorEntry(node);
+            Entry<Integer, ActorRef> nodeToInform = PSC.getNodeList().floorEntry(node);
             if(nodeToInform!=null && nodeToInform.getKey()!=currentNode){
 //                System.out.println("Informing actor with key :"+nodeToInform.getKey()+" to update!");
                 nodeToInform.getValue().tell("updateFingerTable", ActorRef.noSender());
@@ -111,5 +113,17 @@ public class RoutingTable {
         if(fingerTable.containsKey(key))
             return fingerTable.get(key);
         return null;
+    }
+    public void loadBalance(NodeFileOperations nfo){
+        //function checks if there are any file on the server that were supposed to be for the current server
+        if(fingerTable.size()>0){
+            int next = (currentNode + (int)Math.pow(2,0))%PSC.getMAX_N();
+            Entry<Integer, ActorRef> entry = fingerTable.ceilingEntry(next);
+            if(entry==null){
+                entry= fingerTable.firstEntry();
+            }
+            FileOperations msg = new FileOperations(entry.getKey(), String.valueOf(currentNode), nfo.directoryPath, "LoadBalance");
+            entry.getValue().tell(msg, ActorRef.noSender());
+        }
     }
 }

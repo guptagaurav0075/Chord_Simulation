@@ -3,6 +3,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +19,7 @@ public final class PrimaryServerClass {
     private int MAX_N= (1<<3);
     private int LOG_N = getLOG_N_BASE_2();
     private int NUMBER_OF_NODES = 0;
+    private Utility utl = new Utility();
     public static PrimaryServerClass getInstance() {
         return ourInstance;
     }
@@ -24,12 +27,12 @@ public final class PrimaryServerClass {
     private PrimaryServerClass() {
         createSourceDirectory();
     }
-    void addNode(){
+    void addNode(String hash){
         if(NUMBER_OF_NODES>=MAX_N){
             return;
         }
-        ActorRef temp = system.actorOf(Props.create(Node.class), Integer.toString(NUMBER_OF_NODES));
-        nodeList.put(NUMBER_OF_NODES,temp);
+        ActorRef temp = system.actorOf(Props.create(Node.class), hash);
+        nodeList.put(Integer.valueOf(hash),temp);
         NUMBER_OF_NODES+=1;
     }
     public static void stopExecution(){
@@ -66,9 +69,18 @@ public final class PrimaryServerClass {
     public int getNUMBER_OF_NODES() {
         return NUMBER_OF_NODES;
     }
-
-
-
+    public void runInitialEntryPoint() throws IOException, NoSuchAlgorithmException {
+        checkAndGenerateNode();
+        getInstance().getNodeList().firstEntry().getValue().tell("runInGeneral", ActorRef.noSender());
+    }
+    public void checkAndGenerateNode() throws IOException, NoSuchAlgorithmException {
+        String IP = utl.generateIP();
+        String hash = utl.generateHashString(IP, LOG_N);
+        if(getInstance().getNodeList().size()>0 && getNodeList().containsKey(Integer.valueOf(hash)) && NUMBER_OF_NODES<MAX_N){
+            checkAndGenerateNode();
+        }
+        addNode(hash);
+    }
     private void createSourceDirectory(){
 
         File checkSourceDirectory = new File("ServerFiles");
@@ -92,6 +104,14 @@ public final class PrimaryServerClass {
             power = (int) Math.pow(2, index);
         }
         return index;
+    }
+    public boolean checkServerExist(int serverKey){
+        if(nodeList.containsKey(serverKey))
+            return true;
+        return false;
+    }
+    public void removeServerNode(int serverKey){
+        nodeList.remove(serverKey);
     }
 
 }

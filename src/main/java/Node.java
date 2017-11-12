@@ -2,6 +2,8 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedAbstractActor;
 import scala.Int;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +21,7 @@ public class Node extends UntypedAbstractActor{
         this.nfo = new NodeFileOperations(name);
         fingerTable = new RoutingTable(name);
         fingerTable.informActorsToUpdateRoutingTable();
+        fingerTable.loadBalance(nfo);
     }
     @Override
     public void onReceive(Object msg) throws Throwable {
@@ -45,6 +48,8 @@ public class Node extends UntypedAbstractActor{
                 System.out.println("Number Of Hops to Reach from source node: "+((DestinationNode) msg).getSourceNode()+" to destination node: "+((DestinationNode) msg).getDestinationNode()+" is "+((DestinationNode) msg).getHopCount());
                 if(((DestinationNode) msg).getPurpose().equals("RunAsServer")){
                     getSelf().tell("runInGeneral", ActorRef.noSender());
+                }else if(((DestinationNode) msg).getPurpose().equals("DoneLoadBalance")){
+                    nfo.doneLoadBalance();
                 }
             }else if( ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getLOG_N() || ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getNUMBER_OF_NODES()-1){
                 System.out.println("No such Destination Node exist");
@@ -65,10 +70,16 @@ public class Node extends UntypedAbstractActor{
                 }else if(((FileOperations) msg).getPurpose().equals("Search")){
                     nfo.searchFile((FileOperations) msg);
                 }
+                else if(((FileOperations) msg).getPurpose().equals("LoadBalance")){
+                    loadBalance((FileOperations) msg);
+                }
                 runAsServerChoice(name, ((FileOperations) msg).getSourceNode());
             }else if(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getHashValue()))!=-1){
                 ((FileOperations) msg).setOptimizedHashValue(String.valueOf(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getHashValue()))));
                 fingerTable.getNearestActorFromKey(Integer.parseInt(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
+            }else if(fingerTable.fingerTable.size()==0){
+                ((FileOperations) msg).setOptimizedHashValue(name);
+                getSelf().tell(msg, ActorRef.noSender());
             }
             else{
                 fingerTable.getNearestActorFromKey(Integer.parseInt(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
@@ -76,7 +87,13 @@ public class Node extends UntypedAbstractActor{
             }
         }
     }
-    private void runInGeneral(){
+    private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
+        nfo.transferFiles(msg);
+        DestinationNode temp = new DestinationNode(name,msg.getSourceNode(),0,"DoneLoadBalance");
+        getSelf().tell(temp, ActorRef.noSender());
+
+    }
+    private void runInGeneral() throws IOException, NoSuchAlgorithmException {
         int choice = 0;
         do{
             System.out.println("**** Following are the Operations that could be performed ****");
@@ -91,10 +108,11 @@ public class Node extends UntypedAbstractActor{
             }else if (choice==2){
                 getSelf().tell("useAsAdministrator", ActorRef.noSender());
             }else if(choice==3){
-
+                addMoreNodes();
+                getSelf().tell("runInGeneral", ActorRef.noSender());
             }
             else if(choice==4){
-
+                removeNodes();
             }
             else if(choice==5){
                 PrimaryServerClass.stopExecution();
@@ -107,6 +125,62 @@ public class Node extends UntypedAbstractActor{
             }
         }while (choice<1 && choice>5);
     }
+
+    private void removeNodes() {
+        System.out.println("\nSelect one of the choices mentioned below\n");
+        System.out.println("\t\t1->Remove a specific server");
+        System.out.println("\t\t1->Remove a random server");
+        int choice = in.nextInt();
+        if(choice == 1 ) {
+            System.out.println("Enter the name of the server you would like to remove");
+            int serverName = in.nextInt();
+            boolean status = PrimaryServerClass.getInstance().checkServerExist(serverName);
+            if(status && !name.equals(String.valueOf(serverName))){ // given that the server exist and is not the current server
+                PrimaryServerClass.getInstance().removeServerNode(serverName);
+            }else{
+                System.out.println("No such server exist");
+            }
+        }else if(choice==2){
+            removeRandomNode();
+        }else{
+            System.out.println("Enter a valid choice");
+            removeNodes();
+        }
+    }
+
+    private void removeRandomNode() {
+        int randomNode = 0+ (int) (Math.random() * PrimaryServerClass.getInstance().getNUMBER_OF_NODES());
+        if(randomNode == Integer.valueOf(name)){
+            removeRandomNode();
+        }else{
+            PrimaryServerClass.getInstance().removeServerNode(randomNode);
+        }
+    }
+
+
+    private void addMoreNodes() throws IOException, NoSuchAlgorithmException {
+        System.out.println("Select one of the choices mentioned below\n");
+        System.out.println("\t\t1->\tAdd single node");
+        System.out.println("\t\t2->\tAdd multiple node");
+        int choice = in.nextInt();
+        if(choice==1) {
+            System.out.println();
+            addNodes(1);
+        }else if(choice==2){
+            System.out.println("Enter the number of nodes to run\n");
+            int numOfNodes = in.nextInt();
+            addNodes(numOfNodes);
+        }
+        else{
+            addMoreNodes();
+        }
+    }
+    private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException {
+        for (int i = 0; i < numOfNodes; i++) {
+            PrimaryServerClass.getInstance().checkAndGenerateNode();
+        }
+    }
+
     private void runAsServerChoice(){
         System.out.println("Enter the node which shall be run as server");
         String destinationNode = in.next();

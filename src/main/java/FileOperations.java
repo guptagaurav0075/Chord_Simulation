@@ -1,3 +1,6 @@
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+
 /**
  * Created by Gaurav on 11/11/17.
  */
@@ -9,7 +12,20 @@ public class FileOperations {
     String optimizedHashValue;
     String purpose;
     String sourceNode;
+    int destionationNode;
 
+    public int getDestionationNode() {
+        return destionationNode;
+    }
+
+    public FileOperations(int destionationNode, String sourceNode, String sourceNodePath, String purpose) throws IOException, NoSuchAlgorithmException {
+        this.sourcePath = sourceNodePath;
+        this.sourceNode = sourceNode;
+        this.destionationNode = destionationNode;
+        this.purpose = purpose;
+        this.hashValue = new Utility().generateHashString(String.valueOf(destionationNode), PrimaryServerClass.getInstance().getLOG_N());
+        this.optimizedHashValue = this.hashValue;
+    }
     public FileOperations(String fileName, String hashValue, String purpose, String sourceNode) {
         this.fileName = fileName;
         this.hashValue = hashValue;

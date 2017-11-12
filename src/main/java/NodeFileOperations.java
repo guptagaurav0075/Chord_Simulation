@@ -1,6 +1,8 @@
 import scala.Int;
 
 import java.io.*;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -11,6 +13,7 @@ class NodeFileOperations {
     private TreeMap<String, TreeSet<String>> file_hash_value_to_fileName;
     String currentNode;
     String directoryPath;
+    Utility utl = new Utility();
 
     public NodeFileOperations(String currentNode) {
         this.currentNode = currentNode;
@@ -50,12 +53,15 @@ class NodeFileOperations {
     private void transferFile(FileOperations fo){
         File file_Orig = new File(fo.getSourcePath());
         File file_New = new File(directoryPath+"/"+fo.getFileName());
+        fileTransfer(file_Orig, file_New);
+    }
+    private void fileTransfer(File sourceFile, File destinationFile){
         InputStream inStream = null;
         OutputStream outStream = null;
         try{
 
-            inStream = new FileInputStream(file_Orig);
-            outStream = new FileOutputStream(file_New);
+            inStream = new FileInputStream(sourceFile);
+            outStream = new FileOutputStream(destinationFile);
 
             byte[] buffer = new byte[1024];
 
@@ -72,10 +78,69 @@ class NodeFileOperations {
             e.printStackTrace();
         }
     }
+    private void fileTransferAndRemove(File sourceFile, File destinationFile){
+        InputStream inStream = null;
+        OutputStream outStream = null;
+        try{
+
+            inStream = new FileInputStream(sourceFile);
+            outStream = new FileOutputStream(destinationFile);
+
+            byte[] buffer = new byte[1024];
+
+            int length;
+            //copy the file content in bytes
+            while ((length = inStream.read(buffer)) > 0){
+                outStream.write(buffer, 0, length);
+            }
+            sourceFile.delete();
+            inStream.close();
+            outStream.close();
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+    }
     private void createDirectory(){
         File checkSourceDirectory = new File(directoryPath);
         if(!checkSourceDirectory.exists()){
             checkSourceDirectory.mkdir();
         }
+    }
+    public void transferFiles(FileOperations fo) throws IOException, NoSuchAlgorithmException {
+        String hash = utl.generateHashString(fo.getSourceNode(), PrimaryServerClass.getInstance().getLOG_N());
+        Map.Entry<String, TreeSet<String>> entry = file_hash_value_to_fileName.floorEntry(hash);
+        while (entry!=null){
+            TreeSet<String> setOfFiles = entry.getValue();
+            while (setOfFiles.size()>0){
+                String fileName = setOfFiles.first();
+                File sourceFile = new File(directoryPath+"/"+fileName);
+                File destination = new File(fo.getSourcePath()+"/"+fileName);
+                fileTransferAndRemove(sourceFile, destination);
+            }
+        }
+    }
+
+    public void doneLoadBalance() throws IOException, NoSuchAlgorithmException {
+        File currDir = new File(directoryPath);
+        getAllFiles(currDir);
+    }
+    private void getAllFiles(File curDir) throws IOException, NoSuchAlgorithmException {
+
+        File[] filesList = curDir.listFiles();
+        for(File f : filesList){
+            if(f.isFile()){
+                String hash = utl.generateHashString(f.getName(), PrimaryServerClass.getInstance().getLOG_N());
+                TreeSet<String> files;
+                if(file_hash_value_to_fileName.containsKey(hash)){
+                    files = file_hash_value_to_fileName.get(hash);
+                }else{
+                    files = new TreeSet<>();
+                    file_hash_value_to_fileName.put(hash, files);
+                }
+                files.add(f.getName());
+            }
+        }
+
     }
 }
