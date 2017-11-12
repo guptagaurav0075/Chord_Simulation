@@ -76,7 +76,8 @@ public final class PrimaryServerClass {
         }*/
 
     }
-    public static void returnFirstNodeAsServer(){
+    public static void returnFirstNodeAsServer() throws InterruptedException {
+        TimeUnit.SECONDS.sleep(10);
         getInstance().getNodeList().firstEntry().getValue().tell("runInGeneral", ActorRef.noSender());
     }
 }
