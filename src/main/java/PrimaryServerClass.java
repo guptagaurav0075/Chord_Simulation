@@ -2,6 +2,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 
+import java.io.File;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -13,7 +14,7 @@ public final class PrimaryServerClass {
     private static PrimaryServerClass ourInstance = new PrimaryServerClass();
     private ActorSystem system = ActorSystem.create("Chord_Algorithm");
     private TreeMap<Integer, ActorRef> nodeList = new TreeMap<>();
-    private int MAX_N= (1<<10);
+    private int MAX_N= (1<<3);
     private int LOG_N = getLOG_N_BASE_2();
     private int NUMBER_OF_NODES = 0;
     public static PrimaryServerClass getInstance() {
@@ -21,9 +22,7 @@ public final class PrimaryServerClass {
     }
 
     private PrimaryServerClass() {
-    }
-    private int getLOG_N_BASE_2() {
-        return (int) (Math.log(MAX_N) / Math.log(2));
+        createSourceDirectory();
     }
     void addNode(){
         if(NUMBER_OF_NODES>=MAX_N){
@@ -67,17 +66,32 @@ public final class PrimaryServerClass {
     public int getNUMBER_OF_NODES() {
         return NUMBER_OF_NODES;
     }
-    public static void printFingerTables() throws InterruptedException {
-        /*for (Map.Entry<Integer, ActorRef> entry : getInstance().getNodeList().entrySet()){
-            System.out.println();
-            System.out.println();
-            entry.getValue().tell("printRoutingTable", ActorRef.noSender());
-            TimeUnit.SECONDS.sleep(10);
-        }*/
 
+
+
+    private void createSourceDirectory(){
+
+        File checkSourceDirectory = new File("ServerFiles");
+        if(!checkSourceDirectory.exists()){
+            checkSourceDirectory.mkdir();
+        }
     }
+    public String getSourceDirectoryPath(){
+        return (new File("ServerFiles")).getAbsolutePath();
+    }
+
     public static void returnFirstNodeAsServer() throws InterruptedException {
         TimeUnit.SECONDS.sleep(10);
         getInstance().getNodeList().firstEntry().getValue().tell("runInGeneral", ActorRef.noSender());
     }
+    private int getLOG_N_BASE_2() {
+        int power = 0;
+        int index = 0;
+        while (power < MAX_N) {
+            index += 1;
+            power = (int) Math.pow(2, index);
+        }
+        return index;
+    }
+
 }

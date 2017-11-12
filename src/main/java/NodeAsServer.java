@@ -1,8 +1,10 @@
 import akka.actor.ActorRef;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Created by Gaurav on 11/10/17.
  */
@@ -16,7 +18,7 @@ class NodeAsServer {
         this.currentNode = currentNode;
     }
 
-    public void runAsAdministrator() throws InterruptedException {
+    public void runAsAdministrator() throws InterruptedException, IOException, NoSuchAlgorithmException {
         int choice=-1;
         do {
             System.out.println(" ******* Menu Items for Node :"+nodeKey+" *******");
@@ -41,6 +43,7 @@ class NodeAsServer {
             }
             else {
                 System.out.println("Kindly Enter a Valid Choice");
+                currentNode.tell("useAsAdministrator", ActorRef.noSender());
             }
         }while (choice<1 && choice>5);
     }
@@ -58,11 +61,30 @@ class NodeAsServer {
         returnBackAsAdministrator();
     }
 
-    private void handleFile(int choice) {
-        System.out.println("Kindly enter the name of the file with full path");
+    private void handleFile(int choice) throws IOException, NoSuchAlgorithmException, InterruptedException {
+        Utility utl = new Utility();
+        FileOperations fo;
+        if(choice==1){
+            System.out.println("\nKindly enter the name of the file with full path\n");
+            String fileName = in.next();
+            File file = new File(fileName);
+            fo = new FileOperations(file.getName(), file.getAbsolutePath(), utl.generateHashString(file.getName(), PrimaryServerClass.getInstance().getLOG_N()),"Add", String.valueOf(nodeKey));
+
+        }else{
+            System.out.println("\nKindly enter the name of the file you would like to search\n");
+            String fileName = in.next();
+            fo = new FileOperations(fileName,utl.generateHashString(fileName,PrimaryServerClass.getInstance().getLOG_N()), "Search", String.valueOf(nodeKey));
+        }
+        currentNode.tell(fo, ActorRef.noSender());
+    }
+    private void checkNodeExist(){
+        File checkSourceDirectory = new File("ServerFiles");
+        if(!checkSourceDirectory.exists()){
+            checkSourceDirectory.mkdir();
+        }
     }
     private void returnBackAsAdministrator() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(5);
+        TimeUnit.SECONDS.sleep(10);
         currentNode.tell("useAsAdministrator", ActorRef.noSender());
     }
 }

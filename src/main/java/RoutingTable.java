@@ -82,6 +82,31 @@ public class RoutingTable {
         }
         return null;
     }
+    public int isResponsibleForActorForKey(int key){
+        int index = 0;
+        int maxIteration = PSC.getLOG_N();
+        while (index<maxIteration){
+            int node = (currentNode + ((int) Math.pow(2, index)))%PSC.getMAX_N();
+            if(index==key)
+                return successorKey(key);
+            index+=1;
+        }
+        return -1;
+    }
+
+    private int successorKey(int key) {
+        if(fingerTable.ceilingEntry(key)!=null){
+            return fingerTable.ceilingKey(key);
+        }
+        return fingerTable.firstKey();
+    }
+
+    public ActorRef successorNode(int key){
+        if(fingerTable.ceilingEntry(key)!=null){
+            return fingerTable.ceilingEntry(key).getValue();
+        }
+        return fingerTable.firstEntry().getValue();
+    }
     public ActorRef getActorRefFromKey(int key){
         if(fingerTable.containsKey(key))
             return fingerTable.get(key);

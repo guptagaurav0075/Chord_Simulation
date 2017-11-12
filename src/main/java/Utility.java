@@ -12,7 +12,11 @@ public class Utility {
             sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 10).substring(1));
         }
         int numOfChar = numOfCharacters(mBits);
-        System.out.println(sb.toString().substring(0, numOfChar));
+        int returnValue = Integer.valueOf(sb.toString().substring(0, numOfChar));
+        if(returnValue>=(int)Math.pow(2,mBits)){
+            return generateHashString(sb.toString(), mBits);
+        }
+//        System.out.println(sb.toString().substring(0, numOfChar));
         return sb.toString().substring(0, numOfChar);
     }
     private int numOfCharacters(int mBits){
