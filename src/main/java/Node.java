@@ -50,6 +50,7 @@ public class Node extends UntypedAbstractActor{
                     getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("DoneLoadBalance")){
                     nfo.doneLoadBalance();
+//                    return;
                     getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("CheckHopCount")){
                     System.out.println("Number Of Hops to Reach from source node: "+((DestinationNode) msg).getSourceNode()+" to destination node: "+((DestinationNode) msg).getDestinationNode()+" is "+((DestinationNode) msg).getHopCount());
@@ -75,10 +76,11 @@ public class Node extends UntypedAbstractActor{
                     nfo.searchFile((FileOperations) msg);
                 }
                 else if(((FileOperations) msg).getPurpose().equals("LoadBalance")){
-                    System.out.println("Load Balancing called for Current Key :"+name);
-                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
-                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
+//                    System.out.println("Load Balancing called for Current Key :"+name);
+//                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
+//                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
                     loadBalance((FileOperations) msg);
+                    return;
                 }
                 runAsServerChoice(name, ((FileOperations) msg).getSourceNode());
             }
@@ -98,7 +100,7 @@ public class Node extends UntypedAbstractActor{
     }
     private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
         nfo.transferFiles(msg);
-        System.out.println("In Load Balance Function");
+//        System.out.println("In Load Balance Function");
         DestinationNode temp = new DestinationNode(name,msg.getSourceNode(),0,"DoneLoadBalance");
         getSelf().tell(temp, ActorRef.noSender());
 
@@ -125,8 +127,7 @@ public class Node extends UntypedAbstractActor{
                 removeNodes();
             }
             else if(choice==5){
-                PrimaryServerClass.stopExecution();
-                System.exit(1);
+                PrimaryServerClass.getInstance().stopExecution();
                 break;
             }
             else{

@@ -10,7 +10,7 @@ import java.util.TreeSet;
  * Created by Gaurav on 11/11/17.
  */
 class NodeFileOperations {
-    private TreeMap<String, TreeSet<String>> file_hash_value_to_fileName;
+    private TreeMap<Integer, TreeSet<String>> file_hash_value_to_fileName;
     String currentNode;
     String directoryPath;
     Utility utl = new Utility();
@@ -23,26 +23,33 @@ class NodeFileOperations {
     }
     public void addFile(FileOperations fo){
         TreeSet<String> set_Of_Files;
-        if(file_hash_value_to_fileName.containsKey(fo.getHashValue())){
-             set_Of_Files = file_hash_value_to_fileName.get(fo.getHashValue());
+        boolean status=false;
+        int hashValue = Integer.valueOf(fo.getHashValue());
+        if(file_hash_value_to_fileName.containsKey(hashValue)){
+             set_Of_Files = file_hash_value_to_fileName.get(hashValue);
              if(set_Of_Files.contains(fo.getFileName())){
                  System.out.println("Server already has file with name");
                  return;
              }
-             transferFile(fo);
-             set_Of_Files = file_hash_value_to_fileName.get(fo.getHashValue());
+             status = transferFile(fo);
+             if(!status)
+                 return; //file not stored due to error
+             set_Of_Files = file_hash_value_to_fileName.get(hashValue);
              set_Of_Files.add(fo.getFileName());
              return;
         }
-        transferFile(fo);
+        status = transferFile(fo);
+        if(!status)
+            return; // file not stored due to some error
         set_Of_Files = new TreeSet<>();
         set_Of_Files.add(fo.getFileName());
-        file_hash_value_to_fileName.put(fo.getHashValue(), set_Of_Files);
+        file_hash_value_to_fileName.put(hashValue, set_Of_Files);
     }
     public void searchFile(FileOperations fo){
         System.out.println();
-        if(file_hash_value_to_fileName.containsKey(fo.getHashValue())){
-            if(file_hash_value_to_fileName.get(fo.getHashValue()).contains(fo.getFileName())){
+        int hashValue = Integer.valueOf(fo.getHashValue());
+        if(file_hash_value_to_fileName.containsKey(hashValue)){
+            if(file_hash_value_to_fileName.get(hashValue).contains(fo.getFileName())){
                 System.out.println("File is stored at node:"+currentNode);
                 System.out.println();
                 return;
@@ -50,12 +57,13 @@ class NodeFileOperations {
         }
         System.out.println("File is not stored anywhere on the Server");
     }
-    private void transferFile(FileOperations fo){
+    private boolean transferFile(FileOperations fo){
+
         File file_Orig = new File(fo.getSourcePath());
         File file_New = new File(directoryPath+"/"+fo.getFileName());
-        fileTransfer(file_Orig, file_New);
+        return fileTransfer(file_Orig, file_New);
     }
-    private void fileTransfer(File sourceFile, File destinationFile){
+    private boolean fileTransfer(File sourceFile, File destinationFile){
         InputStream inStream = null;
         OutputStream outStream = null;
         try{
@@ -75,8 +83,11 @@ class NodeFileOperations {
             outStream.close();
 
         }catch(IOException e){
-            e.printStackTrace();
+//            e.printStackTrace();
+            System.out.println("File Transferred failed. Error: "+e.getMessage());
+            return false;
         }
+        return true;
     }
     private void fileTransferAndRemove(File sourceFile, File destinationFile){
         InputStream inStream = null;
@@ -108,26 +119,52 @@ class NodeFileOperations {
         }
     }
     public void transferFiles(FileOperations fo) throws IOException, NoSuchAlgorithmException {
-        String hash = utl.generateHashString(fo.getSourceNode(), PrimaryServerClass.getInstance().getLOG_N());
-        Map.Entry<String, TreeSet<String>> entry = file_hash_value_to_fileName.floorEntry(hash);
+//        String hash = utl.generateHashString(fo.getSourceNode(), PrimaryServerClass.getInstance().getLOG_N());
+        int hashValue = Integer.valueOf(currentNode);
+        if(fo.getPurpose().equals("PredecessorLoadBalance"))
+            tranferFilesFromPredecessor(fo, hashValue+1);
+        else if(fo.getPurpose().equals("SuccessorLoadBalance"))
+            tranferFilesFromSuccessor(fo, hashValue-1);
+
+    }
+    private void tranferFilesFromPredecessor(FileOperations fo, int hashOfCurrentNode){
+        Map.Entry<Integer, TreeSet<String>> entry = file_hash_value_to_fileName.ceilingEntry(hashOfCurrentNode);
         while (entry!=null){
             TreeSet<String> setOfFiles = entry.getValue();
             while (setOfFiles.size()>0){
                 String fileName = setOfFiles.first();
-                System.out.println("File to be transferred is: "+fileName);
+//                System.out.println("File to be transferred is: "+fileName);
                 File sourceFile = new File(directoryPath+"/"+fileName);
-                System.out.println("SourcePath is:"+sourceFile.getAbsolutePath());
+//                System.out.println("SourcePath is:"+sourceFile.getAbsolutePath());
                 File destination = new File(fo.getSourcePath()+"/"+fileName);
-                System.out.println("destination is:"+destination.getAbsolutePath());
+//                System.out.println("destination is:"+destination.getAbsolutePath());
                 fileTransferAndRemove(sourceFile, destination);
                 setOfFiles.remove(setOfFiles.first());
             }
+            file_hash_value_to_fileName.remove(entry.getKey());
+            entry = file_hash_value_to_fileName.ceilingEntry(hashOfCurrentNode);
         }
-        entry = file_hash_value_to_fileName.floorEntry(hash);
     }
-
+    private void tranferFilesFromSuccessor(FileOperations fo, int hashOfCurrentNode){
+        Map.Entry<Integer, TreeSet<String>> entry = file_hash_value_to_fileName.floorEntry(hashOfCurrentNode);
+        while (entry!=null){
+            TreeSet<String> setOfFiles = entry.getValue();
+            while (setOfFiles.size()>0){
+                String fileName = setOfFiles.first();
+//                System.out.println("File to be transferred is: "+fileName);
+                File sourceFile = new File(directoryPath+"/"+fileName);
+//                System.out.println("SourcePath is:"+sourceFile.getAbsolutePath());
+                File destination = new File(fo.getSourcePath()+"/"+fileName);
+//                System.out.println("destination is:"+destination.getAbsolutePath());
+                fileTransferAndRemove(sourceFile, destination);
+                setOfFiles.remove(setOfFiles.first());
+            }
+            file_hash_value_to_fileName.remove(entry.getKey());
+            entry = file_hash_value_to_fileName.floorEntry(hashOfCurrentNode);
+        }
+    }
     public void doneLoadBalance() throws IOException, NoSuchAlgorithmException {
-        System.out.println("Done Load Balancing");
+//        System.out.println("Done Load Balancing");
         File currDir = new File(directoryPath);
         getAllFiles(currDir);
     }
@@ -136,12 +173,13 @@ class NodeFileOperations {
         for(File f : filesList){
             if(f.isFile()){
                 String hash = utl.generateHashString(f.getName(), PrimaryServerClass.getInstance().getLOG_N());
+                int hashValue = Integer.valueOf(hash);
                 TreeSet<String> files;
-                if(file_hash_value_to_fileName.containsKey(hash)){
-                    files = file_hash_value_to_fileName.get(hash);
+                if(file_hash_value_to_fileName.containsKey(hashValue)){
+                    files = file_hash_value_to_fileName.get(hashValue);
                 }else{
                     files = new TreeSet<>();
-                    file_hash_value_to_fileName.put(hash, files);
+                    file_hash_value_to_fileName.put(hashValue, files);
                 }
                 files.add(f.getName());
             }

@@ -16,7 +16,7 @@ public final class PrimaryServerClass {
     private static PrimaryServerClass ourInstance = new PrimaryServerClass();
     private ActorSystem system = ActorSystem.create("Chord_Algorithm");
     private TreeMap<Integer, ActorRef> nodeList = new TreeMap<>();
-    private int MAX_N= (1<<3);
+    private int MAX_N= (1<<10);
     private int LOG_N = getLOG_N_BASE_2();
     private int NUMBER_OF_NODES = 0;
     private Utility utl = new Utility();
@@ -35,15 +35,17 @@ public final class PrimaryServerClass {
         nodeList.put(Integer.valueOf(hash),temp);
         NUMBER_OF_NODES+=1;
     }
-    public static void stopExecution(){
+    public void stopExecution(){
         System.out.println("Stopping to execute the program");
-        getInstance().stoppingExecution();
+        stoppingExecution();
+        System.exit(1);
     }
     private void stoppingExecution(){
         for(Map.Entry<Integer, ActorRef> entry :nodeList.entrySet()){
             system.stop(entry.getValue());
             nodeList.remove(entry.getKey());
         }
+
     }
 
     public static PrimaryServerClass getOurInstance() {
@@ -118,6 +120,7 @@ public final class PrimaryServerClass {
     }
     public void removeServerNode(int serverKey){
         nodeList.remove(serverKey);
+        System.exit(1);
     }
 
 }

@@ -40,7 +40,9 @@ public class RoutingTable {
         if(nextEntry!=null &&  !fingerTable.containsKey(nextEntry.getKey()) && nextEntry.getKey()!=this.currentNode){
             fingerTable.put(nextEntry.getKey(), nextEntry.getValue());
         }else{
-            getNextEntry((nodeName+1)%max_N, PSC, max_N);
+            if(nodeName!=0) {
+                getNextEntry((0) % max_N, PSC, max_N);
+            }
         }
     }
     public void printFingerTable(){
@@ -121,13 +123,24 @@ public class RoutingTable {
     public void loadBalance(NodeFileOperations nfo) throws IOException, NoSuchAlgorithmException {
         //function checks if there are any file on the server that were supposed to be for the current server
         if(fingerTable.size()>0){
-            int next = (currentNode + (int)Math.pow(2,0))%PSC.getMAX_N();
-            Entry<Integer, ActorRef> entry = fingerTable.ceilingEntry(next);
-            if(entry==null){
-                entry= fingerTable.firstEntry();
+            int next = (currentNode + 1)%PSC.getMAX_N();
+            Entry<Integer, ActorRef> succ_Entry = fingerTable.ceilingEntry(next);
+            if(succ_Entry==null){
+                succ_Entry= fingerTable.firstEntry();
             }
-            FileOperations msg = new FileOperations(entry.getKey(), String.valueOf(currentNode), nfo.directoryPath, "LoadBalance");
-            selfNodeRef.tell(msg, ActorRef.noSender());
+            loadBalanceInternal(nfo, succ_Entry, "SuccessorLoadBalance");
+
+            next = (currentNode - 1)%PSC.getMAX_N();
+            Entry<Integer, ActorRef> pred_Entry = fingerTable.floorEntry(next);
+            if(pred_Entry==null){
+                pred_Entry = fingerTable.lastEntry();
+            }
+            if(pred_Entry.getKey()!=succ_Entry.getKey())
+                loadBalanceInternal(nfo, pred_Entry, "PredecessorLoadBalance");
         }
+    }
+    private void loadBalanceInternal(NodeFileOperations nfo, Entry<Integer, ActorRef> entry, String purpose) throws IOException, NoSuchAlgorithmException {
+        FileOperations msg = new FileOperations(entry.getKey(), String.valueOf(currentNode), nfo.directoryPath, purpose);
+        entry.getValue().tell(msg, ActorRef.noSender());
     }
 }

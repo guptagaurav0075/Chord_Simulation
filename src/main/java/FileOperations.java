@@ -18,12 +18,12 @@ public class FileOperations {
         return destionationNode;
     }
 
-    public FileOperations(int destionationNode, String sourceNode, String sourceNodePath, String purpose) throws IOException, NoSuchAlgorithmException {
+    public FileOperations(int destinationNode, String sourceNode, String sourceNodePath, String purpose) throws IOException, NoSuchAlgorithmException {
         this.sourcePath = sourceNodePath;
         this.sourceNode = sourceNode;
-        this.destionationNode = destionationNode;
+        this.destionationNode = destinationNode;
         this.purpose = purpose;
-        this.hashValue = new Utility().generateHashString(String.valueOf(destionationNode), PrimaryServerClass.getInstance().getLOG_N());
+        this.hashValue = new Utility().generateHashString(String.valueOf(destinationNode), PrimaryServerClass.getInstance().getLOG_N());
         this.optimizedHashValue = this.hashValue;
     }
     public FileOperations(String fileName, String hashValue, String purpose, String sourceNode) {
