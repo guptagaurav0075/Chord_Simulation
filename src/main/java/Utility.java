@@ -4,7 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 public class Utility {
-    public String generateHashString(String message, int mBits) throws NoSuchAlgorithmException, IOException {
+    public int generateHashString(String message, int mBits) throws NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance("SHA-1");
         byte[] mdbytes = digest.digest(message.getBytes("UTF-8"));
         StringBuffer sb = new StringBuffer();
@@ -17,7 +17,7 @@ public class Utility {
             return generateHashString(sb.toString(), mBits);
         }
 //        System.out.println(sb.toString().substring(0, numOfChar));
-        return sb.toString().substring(0, numOfChar);
+        return Integer.valueOf(sb.toString().substring(0, numOfChar));
     }
     private int numOfCharacters(int mBits){
         int val = (int) Math.pow(2, mBits);

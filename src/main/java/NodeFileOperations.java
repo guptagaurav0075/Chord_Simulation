@@ -2,6 +2,7 @@ import scala.Int;
 
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -167,21 +168,37 @@ class NodeFileOperations {
 //        System.out.println("Done Load Balancing");
         File currDir = new File(directoryPath);
         getAllFiles(currDir);
+        printTreeMap();
+    }
+    private void printTreeMap(){
+        System.out.println("In tree map");
+        for(Map.Entry<Integer, TreeSet<String>> entry : file_hash_value_to_fileName.entrySet()){
+            System.out.println("Files with hash value :"+entry.getKey());
+            Iterator itr = entry.getValue().iterator();
+            while (itr.hasNext()){
+                System.out.println("File Name :"+itr.next());
+            }
+        }
     }
     private void getAllFiles(File curDir) throws IOException, NoSuchAlgorithmException {
-        File[] filesList = curDir.listFiles();
-        for(File f : filesList){
-            if(f.isFile()){
-                String hash = utl.generateHashString(f.getName(), PrimaryServerClass.getInstance().getLOG_N());
-                int hashValue = Integer.valueOf(hash);
-                TreeSet<String> files;
-                if(file_hash_value_to_fileName.containsKey(hashValue)){
-                    files = file_hash_value_to_fileName.get(hashValue);
-                }else{
-                    files = new TreeSet<>();
-                    file_hash_value_to_fileName.put(hashValue, files);
+        System.out.println("In get all files function");
+        if(curDir.isDirectory()){
+            File[] filesList = curDir.listFiles();
+            for(File f : filesList){
+                if(f.isFile()){
+//                String hash = utl.generateHashString(f.getName(), PrimaryServerClass.getInstance().getLOG_N());
+                    int hashValue = utl.generateHashString(f.getName(), PrimaryServerClass.getInstance().getLOG_N());
+//                int hashValue = Integer.valueOf(hash);
+                    TreeSet<String> files;
+                    if(file_hash_value_to_fileName.containsKey(hashValue)){
+                        files = file_hash_value_to_fileName.get(hashValue);
+                        files.add(f.getName());
+                    }else{
+                        files = new TreeSet<String>();
+                        files.add(f.getName());
+                        file_hash_value_to_fileName.put(hashValue, files);
+                    }
                 }
-                files.add(f.getName());
             }
         }
     }

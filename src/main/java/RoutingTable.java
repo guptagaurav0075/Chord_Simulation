@@ -37,7 +37,7 @@ public class RoutingTable {
     }
     private void getNextEntry(int nodeName, PrimaryServerClass PSC, int max_N){
         Entry<Integer, ActorRef> nextEntry = PSC.getNodeList().ceilingEntry(nodeName);
-        if(nextEntry!=null &&  !fingerTable.containsKey(nextEntry.getKey()) && nextEntry.getKey()!=this.currentNode){
+        if(nextEntry!=null &&!fingerTable.containsKey(nextEntry.getKey()) && nextEntry.getKey()!=this.currentNode){
             fingerTable.put(nextEntry.getKey(), nextEntry.getValue());
         }else{
             if(nodeName!=0) {
@@ -53,10 +53,6 @@ public class RoutingTable {
         }
     }
     public void updateFingerTable(){
-        /*if(!fingerTable.containsKey(n)){
-            fingerTable.put(n,PSC.getNodeList().get(n));
-            removeFromFingerTable();
-        }*/
         fingerTable = new TreeMap<>();
         GenerateRoutingTable();
     }
@@ -135,12 +131,12 @@ public class RoutingTable {
             if(pred_Entry==null){
                 pred_Entry = fingerTable.lastEntry();
             }
-            if(pred_Entry.getKey()!=succ_Entry.getKey())
-                loadBalanceInternal(nfo, pred_Entry, "PredecessorLoadBalance");
+//            if(pred_Entry.getKey()!=succ_Entry.getKey())
+//                loadBalanceInternal(nfo, pred_Entry, "PredecessorLoadBalance");
         }
     }
     private void loadBalanceInternal(NodeFileOperations nfo, Entry<Integer, ActorRef> entry, String purpose) throws IOException, NoSuchAlgorithmException {
-        FileOperations msg = new FileOperations(entry.getKey(), String.valueOf(currentNode), nfo.directoryPath, purpose);
+        FileOperations msg = new FileOperations(String.valueOf(entry.getKey()), String.valueOf(currentNode), nfo.directoryPath, purpose, String.valueOf(entry.getKey()));
         entry.getValue().tell(msg, ActorRef.noSender());
     }
 }

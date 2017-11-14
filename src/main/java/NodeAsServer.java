@@ -66,12 +66,13 @@ class NodeAsServer {
             System.out.println("\nKindly enter the name of the file with full path\n");
             String fileName = in.next();
             File file = new File(fileName.trim());
-            fo = new FileOperations(file.getName(), file.getAbsolutePath(), utl.generateHashString(file.getName(), PrimaryServerClass.getInstance().getLOG_N()),"Add", String.valueOf(nodeKey));
+            String hashValue = String.valueOf(utl.generateHashString(file.getName(), PrimaryServerClass.getInstance().getLOG_N()));
+            fo = new FileOperations(file.getName(), file.getAbsolutePath(), hashValue ,"Add", String.valueOf(nodeKey), hashValue);
 
         }else{
             System.out.println("\nKindly enter the name of the file you would like to search\n");
             String fileName = in.next();
-            fo = new FileOperations(fileName.trim(),utl.generateHashString(fileName.trim(),PrimaryServerClass.getInstance().getLOG_N()), "Search", String.valueOf(nodeKey));
+            fo = new FileOperations(fileName.trim(),String.valueOf(utl.generateHashString(fileName.trim(),PrimaryServerClass.getInstance().getLOG_N())), "Search", String.valueOf(nodeKey));
         }
         currentNode.tell(fo, ActorRef.noSender());
     }

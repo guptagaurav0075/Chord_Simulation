@@ -27,12 +27,13 @@ public final class PrimaryServerClass {
     private PrimaryServerClass() {
         createSourceDirectory();
     }
-    void addNode(String hash){
+    void addNode(int hash){
         if(NUMBER_OF_NODES>=MAX_N){
             return;
         }
-        ActorRef temp = system.actorOf(Props.create(Node.class), hash);
-        nodeList.put(Integer.valueOf(hash),temp);
+        ActorRef temp = system.actorOf(Props.create(Node.class), String.valueOf(hash));
+//        nodeList.put(Integer.valueOf(hash),temp);
+        nodeList.put(hash,temp);
         NUMBER_OF_NODES+=1;
     }
     public void stopExecution(){
@@ -77,7 +78,7 @@ public final class PrimaryServerClass {
     }
     public void checkAndGenerateNode() throws IOException, NoSuchAlgorithmException {
         String IP = utl.generateIP();
-        String hash = utl.generateHashString(IP, LOG_N);
+        int hash = utl.generateHashString(IP, LOG_N);
         if(getInstance().getNodeList().size()>0 && getNodeList().containsKey(Integer.valueOf(hash))){
             checkAndGenerateNode();
             return;

@@ -4,6 +4,7 @@ import scala.Int;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +22,7 @@ public class Node extends UntypedAbstractActor{
         this.nfo = new NodeFileOperations(name);
         fingerTable = new RoutingTable(name, getSelf());
         fingerTable.informActorsToUpdateRoutingTable();
-//        fingerTable.loadBalance(nfo);
+        fingerTable.loadBalance(nfo);
     }
     @Override
     public void onReceive(Object msg) throws Throwable {
@@ -50,8 +51,9 @@ public class Node extends UntypedAbstractActor{
                     getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("DoneLoadBalance")){
                     nfo.doneLoadBalance();
-//                    return;
-                    getSelf().tell("runInGeneral", ActorRef.noSender());
+                    System.out.println("Done Load Balancing");
+                    return;
+//                    getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("CheckHopCount")){
                     System.out.println("Number Of Hops to Reach from source node: "+((DestinationNode) msg).getSourceNode()+" to destination node: "+((DestinationNode) msg).getDestinationNode()+" is "+((DestinationNode) msg).getHopCount());
                     runAsServerChoice(name, ((DestinationNode) msg).getSourceNode());
@@ -75,7 +77,13 @@ public class Node extends UntypedAbstractActor{
                 }else if(((FileOperations) msg).getPurpose().equals("Search")){
                     nfo.searchFile((FileOperations) msg);
                 }
-                else if(((FileOperations) msg).getPurpose().equals("LoadBalance")){
+                else if(((FileOperations) msg).getPurpose().equals("PredecessorLoadBalance")){
+//                    System.out.println("Load Balancing called for Current Key :"+name);
+//                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
+//                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
+                    loadBalance((FileOperations) msg);
+                    return;
+                }else if(((FileOperations) msg).getPurpose().equals("SuccessorLoadBalance")){
 //                    System.out.println("Load Balancing called for Current Key :"+name);
 //                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
 //                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
@@ -90,22 +98,22 @@ public class Node extends UntypedAbstractActor{
             }
             else if(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue()))!=-1){
                 ((FileOperations) msg).setOptimizedHashValue(String.valueOf(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue()))));
-                fingerTable.getNearestActorFromKey(Integer.parseInt(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
+                fingerTable.getNearestActorFromKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
             }
             else{
-                fingerTable.getNearestActorFromKey(Integer.parseInt(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
+                fingerTable.getNearestActorFromKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
                 TimeUnit.SECONDS.sleep(1);
             }
         }
     }
     private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
         nfo.transferFiles(msg);
-//        System.out.println("In Load Balance Function");
+        System.out.println("In Load Balance Function");
         DestinationNode temp = new DestinationNode(name,msg.getSourceNode(),0,"DoneLoadBalance");
         getSelf().tell(temp, ActorRef.noSender());
 
     }
-    private void runInGeneral() throws IOException, NoSuchAlgorithmException {
+    private void runInGeneral() throws IOException, NoSuchAlgorithmException, InterruptedException {
         int choice = 0;
         do{
             System.out.println("**** Following are the Operations that could be performed ****");
@@ -114,7 +122,12 @@ public class Node extends UntypedAbstractActor{
             System.out.println("\t\t3->\tAdd new Node(s) to the Server");
             System.out.println("\t\t4->\tRemove Node(s) from the Server");
             System.out.println("\t\t5->\tStop Executing The Server.");
-            choice = in.nextInt();
+            try {
+                choice = in.nextInt();
+            }catch (InputMismatchException e){
+                System.out.println("\n\nWrong input entered, try again!\n\n");
+                getSelf().tell("useAsAdministrator", ActorRef.noSender());
+            }
             if(choice==1){
                 runAsServerChoice();
             }else if (choice==2){
@@ -169,7 +182,7 @@ public class Node extends UntypedAbstractActor{
     }
 
 
-    private void addMoreNodes() throws IOException, NoSuchAlgorithmException {
+    private void addMoreNodes() throws IOException, NoSuchAlgorithmException, InterruptedException {
         System.out.println("Select one of the choices mentioned below\n");
         System.out.println("\t\t1->\tAdd single node");
         System.out.println("\t\t2->\tAdd multiple node");
@@ -187,9 +200,10 @@ public class Node extends UntypedAbstractActor{
         }
         return;
     }
-    private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException {
+    private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException, InterruptedException {
         for (int i = 0; i < numOfNodes; i++) {
             PrimaryServerClass.getInstance().checkAndGenerateNode();
+            TimeUnit.SECONDS.sleep(3);
         }
     }
 

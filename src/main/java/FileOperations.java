@@ -7,25 +7,22 @@ import java.security.NoSuchAlgorithmException;
 public class FileOperations {
     String fileName;
     String sourcePath;
+    String sourceNode;
     String destinationPath;
+    String destionationNode;
     String hashValue;
     String optimizedHashValue;
     String purpose;
-    String sourceNode;
-    int destionationNode;
 
-    public int getDestionationNode() {
-        return destionationNode;
-    }
-
-    public FileOperations(int destinationNode, String sourceNode, String sourceNodePath, String purpose) throws IOException, NoSuchAlgorithmException {
+    public FileOperations(String destinationNode, String sourceNode, String sourceNodePath, String purpose, String hashValue) throws IOException, NoSuchAlgorithmException {
         this.sourcePath = sourceNodePath;
         this.sourceNode = sourceNode;
         this.destionationNode = destinationNode;
         this.purpose = purpose;
-        this.hashValue = new Utility().generateHashString(String.valueOf(destinationNode), PrimaryServerClass.getInstance().getLOG_N());
+        this.hashValue = String.valueOf(destinationNode);
         this.optimizedHashValue = this.hashValue;
     }
+
     public FileOperations(String fileName, String hashValue, String purpose, String sourceNode) {
         this.fileName = fileName;
         this.hashValue = hashValue;
@@ -33,17 +30,20 @@ public class FileOperations {
         this.optimizedHashValue = this.hashValue;
         this.sourceNode = sourceNode;
     }
-
     public String getSourceNode() {
         return sourceNode;
     }
 
-    public FileOperations(String fileName, String sourcePath, String hashValue, String purpose, String sourceNode) {
+    public String getDestionationNode() {
+        return destionationNode;
+    }
+
+    public FileOperations(String fileName, String sourcePath, String hashValue, String purpose, String sourceNode, String optimizedHashValue) {
         this.fileName = fileName;
         this.sourcePath = sourcePath;
         this.hashValue = hashValue;
         this.purpose = purpose;
-        this.optimizedHashValue  = this.hashValue;
+        this.optimizedHashValue  = optimizedHashValue;
         this.sourceNode = sourceNode;
 
     }
