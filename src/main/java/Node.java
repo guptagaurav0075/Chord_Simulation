@@ -70,33 +70,9 @@ public class Node extends UntypedAbstractActor{
             }
         }
         else if(msg instanceof FileOperations){
-            if(((FileOperations) msg).getOptimizedHashValue().equals(name)){
-                if(((FileOperations) msg).getPurpose().equals("Add")){
-                    System.out.println("Storing the file on node :"+name);
-                    nfo.addFile((FileOperations) msg);
-                }else if(((FileOperations) msg).getPurpose().equals("Search")){
-                    nfo.searchFile((FileOperations) msg);
-                }
-                else if(((FileOperations) msg).getPurpose().equals("PredecessorLoadBalance")){
-//                    System.out.println("Load Balancing called for Current Key :"+name);
-//                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
-//                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
-                    loadBalance((FileOperations) msg);
-                    return;
-                }else if(((FileOperations) msg).getPurpose().equals("SuccessorLoadBalance")){
-//                    System.out.println("Load Balancing called for Current Key :"+name);
-//                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
-//                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
-                    loadBalance((FileOperations) msg);
-                    return;
-                }
-                runAsServerChoice(name, ((FileOperations) msg).getSourceNode());
-            }
-            else if(fingerTable.fingerTable.size()==0){
-                ((FileOperations) msg).setOptimizedHashValue(name);
-                getSelf().tell(msg, ActorRef.noSender());
-            }
-            else if(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue()))!=-1){
+            if(((FileOperations) msg).getOptimizedHashValue().equals(name) || fingerTable.fingerTable.size()==0){
+                manageFileOperations((FileOperations) msg);
+            }else if(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue()))!=-1){
                 ((FileOperations) msg).setOptimizedHashValue(String.valueOf(fingerTable.isResponsibleForActorForKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue()))));
                 fingerTable.getNearestActorFromKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
             }
@@ -104,7 +80,35 @@ public class Node extends UntypedAbstractActor{
                 fingerTable.getNearestActorFromKey(Integer.valueOf(((FileOperations) msg).getOptimizedHashValue())).tell(msg, ActorRef.noSender());
                 TimeUnit.SECONDS.sleep(1);
             }
+            /*
+
+            else if(fingerTable.fingerTable.size()==0){
+                ((FileOperations) msg).setOptimizedHashValue(name);
+                getSelf().tell(msg, ActorRef.noSender());
+            }*/
         }
+    }
+    private void manageFileOperations(FileOperations msg) throws IOException, NoSuchAlgorithmException {
+        if(((FileOperations) msg).getPurpose().equals("Add")){
+            System.out.println("Storing the file on node :"+name);
+            nfo.addFile((FileOperations) msg);
+        }else if(((FileOperations) msg).getPurpose().equals("Search")){
+            nfo.searchFile((FileOperations) msg);
+        }
+        else if(((FileOperations) msg).getPurpose().equals("PredecessorLoadBalance")){
+//                    System.out.println("Load Balancing called for Current Key :"+name);
+//                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
+//                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
+            loadBalance((FileOperations) msg);
+            return;
+        }else if(((FileOperations) msg).getPurpose().equals("SuccessorLoadBalance")){
+//                    System.out.println("Load Balancing called for Current Key :"+name);
+//                    System.out.println("Source Node"+((FileOperations) msg).getSourceNode());
+//                    System.out.println("Souce Path"+((FileOperations) msg).getSourcePath());
+            loadBalance((FileOperations) msg);
+            return;
+        }
+        runAsServerChoice(name, ((FileOperations) msg).getSourceNode());
     }
     private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
         nfo.transferFiles(msg);
@@ -122,12 +126,8 @@ public class Node extends UntypedAbstractActor{
             System.out.println("\t\t3->\tAdd new Node(s) to the Server");
             System.out.println("\t\t4->\tRemove Node(s) from the Server");
             System.out.println("\t\t5->\tStop Executing The Server.");
-            try {
-                choice = in.nextInt();
-            }catch (InputMismatchException e){
-                System.out.println("\n\nWrong input entered, try again!\n\n");
-                getSelf().tell("useAsAdministrator", ActorRef.noSender());
-            }
+
+            choice = in.nextInt();
             if(choice==1){
                 runAsServerChoice();
             }else if (choice==2){
@@ -147,6 +147,7 @@ public class Node extends UntypedAbstractActor{
                 System.out.println("Kindly Enter a Valid Choice");
                 getSelf().tell("runInGeneral", ActorRef.noSender());
             }
+
         }while (choice<1 && choice>5);
     }
 
@@ -170,6 +171,9 @@ public class Node extends UntypedAbstractActor{
             System.out.println("Enter a valid choice");
             removeNodes();
         }
+    }
+    void transferFilesToSuccessorNode(){
+
     }
 
     private void removeRandomNode() {
@@ -203,7 +207,7 @@ public class Node extends UntypedAbstractActor{
     private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException, InterruptedException {
         for (int i = 0; i < numOfNodes; i++) {
             PrimaryServerClass.getInstance().checkAndGenerateNode();
-            TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(4);
         }
     }
 
@@ -226,3 +230,14 @@ public class Node extends UntypedAbstractActor{
         return name;
     }
 }
+/*
+/Users/Gaurav/Downloads/test.csv
+Storing the file on node :1018
+
+/Users/Gaurav/Downloads/train.csv
+Storing the file on node :761
+
+/Users/Gaurav/Downloads/AES.c
+Storing the file on node :213
+
+ */

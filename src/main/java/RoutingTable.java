@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Timer;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Gaurav on 11/9/17.
@@ -24,7 +26,7 @@ public class RoutingTable {
         GenerateRoutingTable();
     }
     private void GenerateRoutingTable(){
-        if(PSC.getNUMBER_OF_NODES()-1<0)
+        if(PSC.getNUMBER_OF_NODES()-1<=0)
             return;
         int index=1;
         while (index<PSC.getNUMBER_OF_NODES() && index<=PSC.getLOG_N()){
@@ -39,18 +41,23 @@ public class RoutingTable {
         Entry<Integer, ActorRef> nextEntry = PSC.getNodeList().ceilingEntry(nodeName);
         if(nextEntry!=null &&!fingerTable.containsKey(nextEntry.getKey()) && nextEntry.getKey()!=this.currentNode){
             fingerTable.put(nextEntry.getKey(), nextEntry.getValue());
-        }else{
+        }else if(nextEntry!= null && (fingerTable.containsKey(nextEntry.getKey()) || nextEntry.getKey()!=this.currentNode)) {
+            getNextEntry(nextEntry.getKey()+1, PSC, max_N);
+        }else if(nextEntry==null){
             if(nodeName!=0) {
                 getNextEntry((0) % max_N, PSC, max_N);
+            }else{
+                getNextEntry(1%max_N, PSC, max_N);
             }
         }
     }
     public void printFingerTable(){
-        System.out.println("****Finger Table for Node:"+currentNode+" is :********");
+        System.out.println("\n\n****Finger Table for Node:"+currentNode+" is :********");
 
         for (Entry<Integer, ActorRef> actor : fingerTable.entrySet()){
             System.out.println("\t\tcurrent node: "+currentNode+"\tMapped Node :"+actor.getKey());
         }
+        System.out.println("\n\n");
     }
     public void updateFingerTable(){
         fingerTable = new TreeMap<>();
@@ -91,7 +98,7 @@ public class RoutingTable {
         int maxIteration = PSC.getLOG_N();
         while (index<maxIteration){
             int node = (currentNode + ((int) Math.pow(2, index)))%PSC.getMAX_N();
-            if(index==key)
+            if(node==key)
                 return successorKey(key);
             index+=1;
         }
@@ -103,6 +110,12 @@ public class RoutingTable {
             return fingerTable.ceilingKey(key);
         }
         return fingerTable.firstKey();
+    }
+    private int predecessorKey(int key) {
+        if(fingerTable.floorEntry(key)!=null){
+            return fingerTable.floorKey(key);
+        }
+        return fingerTable.lastKey();
     }
 
     public ActorRef successorNode(int key){
@@ -116,27 +129,41 @@ public class RoutingTable {
             return fingerTable.get(key);
         return null;
     }
+    public void transferFileToSuccessorNode(){
+
+    }
     public void loadBalance(NodeFileOperations nfo) throws IOException, NoSuchAlgorithmException {
         //function checks if there are any file on the server that were supposed to be for the current server
-        if(fingerTable.size()>0){
-            int next = (currentNode + 1)%PSC.getMAX_N();
-            Entry<Integer, ActorRef> succ_Entry = fingerTable.ceilingEntry(next);
-            if(succ_Entry==null){
-                succ_Entry= fingerTable.firstEntry();
-            }
-            loadBalanceInternal(nfo, succ_Entry, "SuccessorLoadBalance");
-
-            next = (currentNode - 1)%PSC.getMAX_N();
-            Entry<Integer, ActorRef> pred_Entry = fingerTable.floorEntry(next);
-            if(pred_Entry==null){
-                pred_Entry = fingerTable.lastEntry();
-            }
-//            if(pred_Entry.getKey()!=succ_Entry.getKey())
-//                loadBalanceInternal(nfo, pred_Entry, "PredecessorLoadBalance");
+        if(fingerTable.size()<=0){
+            return;
         }
+        int next = (currentNode + 1)%PSC.getMAX_N();
+        Entry<Integer, ActorRef> succ_Entry = fingerTable.ceilingEntry(next);
+        if(succ_Entry==null){
+            succ_Entry= fingerTable.firstEntry();
+//            loadBalanceInternal(nfo, succ_Entry, "PredecessorLoadBalance");
+        }/*else{
+            loadBalanceInternal(nfo, succ_Entry, "SuccessorLoadBalance");
+        }*/
+        loadBalanceInternal(nfo, succ_Entry, "SuccessorLoadBalance");
+
+//        next = (currentNode - 1)%PSC.getMAX_N();
+        /*Entry<Integer, ActorRef> pred_Entry = fingerTable.floorEntry(next);
+        boolean isPredecessor =true;
+        if(pred_Entry==null){
+            pred_Entry = fingerTable.lastEntry();
+            isPredecessor = false;
+        }
+        if(pred_Entry.getKey()!=succ_Entry.getKey()) {
+            if (!isPredecessor)
+                loadBalanceInternal(nfo, pred_Entry, "SuccessorLoadBalance");
+            else
+                loadBalanceInternal(nfo, pred_Entry, "PredecessorLoadBalance");
+        }*/
     }
     private void loadBalanceInternal(NodeFileOperations nfo, Entry<Integer, ActorRef> entry, String purpose) throws IOException, NoSuchAlgorithmException {
-        FileOperations msg = new FileOperations(String.valueOf(entry.getKey()), String.valueOf(currentNode), nfo.directoryPath, purpose, String.valueOf(entry.getKey()));
+        FileOperations msg = new FileOperations(String.valueOf(entry.getKey()), String.valueOf(currentNode), nfo.directoryPath, purpose, String.valueOf(entry.getKey()), predecessorKey(currentNode), successorKey(currentNode));
         entry.getValue().tell(msg, ActorRef.noSender());
+//        TimeUnit.SECONDS.sleep(5);
     }
 }

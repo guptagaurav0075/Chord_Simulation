@@ -3,6 +3,7 @@ import akka.actor.ActorRef;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 /**
@@ -28,7 +29,8 @@ class NodeAsServer {
             System.out.println("\t\t4--> Print Finger Table.");
             System.out.println("\t\t5-->Exit from current Node as Server Node.");
 
-            choice=in.nextInt();
+            choice = in.nextInt();
+
             if(choice ==1||choice==2){
                 handleFile(choice);
             }
@@ -71,7 +73,13 @@ class NodeAsServer {
 
         }else{
             System.out.println("\nKindly enter the name of the file you would like to search\n");
-            String fileName = in.next();
+            String fileName = new String();
+            try {
+                fileName= in.next();
+            }catch (InputMismatchException e){
+                System.out.println("\n\nWrong input entered, try again!\n\n");
+                currentNode.tell("useAsAdministrator", ActorRef.noSender());
+            }
             fo = new FileOperations(fileName.trim(),String.valueOf(utl.generateHashString(fileName.trim(),PrimaryServerClass.getInstance().getLOG_N())), "Search", String.valueOf(nodeKey));
         }
         currentNode.tell(fo, ActorRef.noSender());

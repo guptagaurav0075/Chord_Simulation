@@ -5,22 +5,26 @@ import java.security.NoSuchAlgorithmException;
  * Created by Gaurav on 11/11/17.
  */
 public class FileOperations {
-    String fileName;
-    String sourcePath;
-    String sourceNode;
-    String destinationPath;
-    String destionationNode;
-    String hashValue;
-    String optimizedHashValue;
-    String purpose;
+    private String fileName;
+    private String sourcePath;
+    private String sourceNode;
+    private String destinationPath;
+    private String destionationNode;
+    private String hashValue;
+    private String optimizedHashValue;
+    private String purpose;
+    private int predecessorOfSourceNode;
+    private int successorOfSourceNode;
 
-    public FileOperations(String destinationNode, String sourceNode, String sourceNodePath, String purpose, String hashValue) throws IOException, NoSuchAlgorithmException {
+    public FileOperations(String destinationNode, String sourceNode, String sourceNodePath, String purpose, String hashValue, int predecessor, int successor) throws IOException, NoSuchAlgorithmException {
         this.sourcePath = sourceNodePath;
         this.sourceNode = sourceNode;
         this.destionationNode = destinationNode;
         this.purpose = purpose;
         this.hashValue = String.valueOf(destinationNode);
         this.optimizedHashValue = this.hashValue;
+        this.predecessorOfSourceNode = predecessor;
+        this.successorOfSourceNode = successor;
     }
 
     public FileOperations(String fileName, String hashValue, String purpose, String sourceNode) {
@@ -29,6 +33,14 @@ public class FileOperations {
         this.purpose = purpose;
         this.optimizedHashValue = this.hashValue;
         this.sourceNode = sourceNode;
+    }
+
+    public int getPredecessorOfSourceNode() {
+        return predecessorOfSourceNode;
+    }
+
+    public int getSuccessorOfSourceNode() {
+        return successorOfSourceNode;
     }
     public String getSourceNode() {
         return sourceNode;

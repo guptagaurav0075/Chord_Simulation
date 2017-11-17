@@ -123,13 +123,16 @@ class NodeFileOperations {
 //        String hash = utl.generateHashString(fo.getSourceNode(), PrimaryServerClass.getInstance().getLOG_N());
         int hashValue = Integer.valueOf(currentNode);
         if(fo.getPurpose().equals("PredecessorLoadBalance"))
-            tranferFilesFromPredecessor(fo, hashValue+1);
+            tranferFilesFromPredecessor(fo, hashValue+1, fo.getSuccessorOfSourceNode());
         else if(fo.getPurpose().equals("SuccessorLoadBalance"))
-            tranferFilesFromSuccessor(fo, hashValue-1);
+            tranferFilesFromSuccessor(fo, hashValue-1, fo.getPredecessorOfSourceNode());
 
     }
-    private void tranferFilesFromPredecessor(FileOperations fo, int hashOfCurrentNode){
+    private void tranferFilesFromPredecessor(FileOperations fo, int hashOfCurrentNode, int successorOfSourceNode){
         Map.Entry<Integer, TreeSet<String>> entry = file_hash_value_to_fileName.ceilingEntry(hashOfCurrentNode);
+//        if(){
+//            //example-1: currentNode 400, sourceNode  = 200 successorNode 250
+//        }
         while (entry!=null){
             TreeSet<String> setOfFiles = entry.getValue();
             while (setOfFiles.size()>0){
@@ -146,22 +149,56 @@ class NodeFileOperations {
             entry = file_hash_value_to_fileName.ceilingEntry(hashOfCurrentNode);
         }
     }
-    private void tranferFilesFromSuccessor(FileOperations fo, int hashOfCurrentNode){
-        Map.Entry<Integer, TreeSet<String>> entry = file_hash_value_to_fileName.floorEntry(hashOfCurrentNode);
-        while (entry!=null){
-            TreeSet<String> setOfFiles = entry.getValue();
-            while (setOfFiles.size()>0){
-                String fileName = setOfFiles.first();
-//                System.out.println("File to be transferred is: "+fileName);
-                File sourceFile = new File(directoryPath+"/"+fileName);
-//                System.out.println("SourcePath is:"+sourceFile.getAbsolutePath());
-                File destination = new File(fo.getSourcePath()+"/"+fileName);
-//                System.out.println("destination is:"+destination.getAbsolutePath());
-                fileTransferAndRemove(sourceFile, destination);
-                setOfFiles.remove(setOfFiles.first());
+    private void tranferFilesFromSuccessor(FileOperations fo, int hashOfCurrentNode, int predecessorOfSourceNode){
+        Map.Entry<Integer, TreeSet<String>> entry;
+        predecessorOfSourceNode = predecessorOfSourceNode+1;
+        if(Integer.valueOf(fo.getSourceNode())<predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode())<Integer.valueOf(currentNode)){
+            // example1: predcessorNode = 1022 & newSourceNode = 100 & currentNode = 200
+            // example2: predcessorNode = 1022 & newSourceNode = 100 & currentNode = 1022
+            entry =  file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
+            // transfer all the files which has hashValue stored in node 200 with values greater than 1022;
+            while (entry!=null){
+                transferFileInternal(entry.getValue(), fo);
+                file_hash_value_to_fileName.remove(entry.getKey());
+                entry =  file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
             }
-            file_hash_value_to_fileName.remove(entry.getKey());
-            entry = file_hash_value_to_fileName.floorEntry(hashOfCurrentNode);
+            // transfer all files which has hashvalues less than newSourceNode which in this case would be 100, therefore
+            entry = file_hash_value_to_fileName.floorEntry(Integer.valueOf(fo.getSourceNode()));
+            while (entry!=null){
+                transferFileInternal(entry.getValue(), fo);
+                file_hash_value_to_fileName.remove(entry.getKey());
+                entry = file_hash_value_to_fileName.floorEntry(Integer.valueOf(fo.getSourceNode()));
+            }
+
+        } else if (Integer.valueOf(fo.getSourceNode()) > predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode()) > Integer.valueOf(currentNode)) {
+            // example: predcessorNode = 1020 & newSourceNode = 1022 & currentNode = 200
+            entry = file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
+            while (entry!=null && entry.getKey()<=(Integer.valueOf(fo.getSourceNode()))){
+                transferFileInternal(entry.getValue(), fo);
+                file_hash_value_to_fileName.remove(entry.getKey());
+                entry =  file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
+            }
+
+        } else if(Integer.valueOf(fo.getSourceNode()) > predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode()) < Integer.valueOf(currentNode)) {
+            // example: predcessorNode = 1000 & newSourceNode = 1012 & currentNode = 1020
+            entry = file_hash_value_to_fileName.firstEntry();
+            while (entry != null && entry.getKey() <= Integer.valueOf(fo.getSourceNode())) {
+                transferFileInternal(entry.getValue(), fo);
+                file_hash_value_to_fileName.remove(entry.getKey());
+                entry = file_hash_value_to_fileName.firstEntry();
+            }
+        }
+    }
+    private void transferFileInternal(TreeSet<String> setOfFiles, FileOperations fo){
+        while (setOfFiles.size()>0){
+            String fileName = setOfFiles.first();
+//                System.out.println("File to be transferred is: "+fileName);
+            File sourceFile = new File(directoryPath+"/"+fileName);
+//                System.out.println("SourcePath is:"+sourceFile.getAbsolutePath());
+            File destination = new File(fo.getSourcePath()+"/"+fileName);
+//                System.out.println("destination is:"+destination.getAbsolutePath());
+            fileTransferAndRemove(sourceFile, destination);
+            setOfFiles.remove(setOfFiles.first());
         }
     }
     public void doneLoadBalance() throws IOException, NoSuchAlgorithmException {
