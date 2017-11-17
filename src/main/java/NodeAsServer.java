@@ -27,7 +27,8 @@ class NodeAsServer {
             System.out.println("\t\t2--> Find file with a file name.");
             System.out.println("\t\t3--> Check number hops required to reach a particular Node.");
             System.out.println("\t\t4--> Print Finger Table.");
-            System.out.println("\t\t5-->Exit from current Node as Server Node.");
+            System.out.println("\t\t5--> Check All Files.");
+            System.out.println("\t\t6-->Exit from current Node as Server Node.");
 
             choice = in.nextInt();
 
@@ -39,8 +40,12 @@ class NodeAsServer {
             }
             else if(choice==4){
                 printFingerTable();
+            }else if(choice==5){
+                currentNode.tell("checkAllFiles", ActorRef.noSender());
+                TimeUnit.SECONDS.sleep(2);
+                currentNode.tell("useAsAdministrator", ActorRef.noSender());
             }
-            else if(choice==5){
+            else if(choice==6){
                 currentNode.tell("runInGeneral", ActorRef.noSender());
             }
             else {

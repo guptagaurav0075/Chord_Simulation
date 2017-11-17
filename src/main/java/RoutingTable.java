@@ -132,7 +132,7 @@ public class RoutingTable {
     public void transferFileToSuccessorNode(){
 
     }
-    public void loadBalance(NodeFileOperations nfo) throws IOException, NoSuchAlgorithmException {
+    public void loadBalance(NodeFileOperations nfo) throws IOException, NoSuchAlgorithmException, InterruptedException {
         //function checks if there are any file on the server that were supposed to be for the current server
         if(fingerTable.size()<=0){
             return;
@@ -161,9 +161,9 @@ public class RoutingTable {
                 loadBalanceInternal(nfo, pred_Entry, "PredecessorLoadBalance");
         }*/
     }
-    private void loadBalanceInternal(NodeFileOperations nfo, Entry<Integer, ActorRef> entry, String purpose) throws IOException, NoSuchAlgorithmException {
+    private void loadBalanceInternal(NodeFileOperations nfo, Entry<Integer, ActorRef> entry, String purpose) throws IOException, NoSuchAlgorithmException, InterruptedException {
         FileOperations msg = new FileOperations(String.valueOf(entry.getKey()), String.valueOf(currentNode), nfo.directoryPath, purpose, String.valueOf(entry.getKey()), predecessorKey(currentNode), successorKey(currentNode));
         entry.getValue().tell(msg, ActorRef.noSender());
-//        TimeUnit.SECONDS.sleep(5);
+        TimeUnit.SECONDS.sleep(4);
     }
 }

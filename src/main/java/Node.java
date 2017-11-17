@@ -16,7 +16,7 @@ public class Node extends UntypedAbstractActor{
     String name;
     Scanner in = new Scanner(System.in);
     NodeFileOperations nfo;
-    public Node() throws IOException, NoSuchAlgorithmException {
+    public Node() throws IOException, NoSuchAlgorithmException, InterruptedException {
         name = self().path().name();
         System.out.println("Creating New Node with key :"+name);
         this.nfo = new NodeFileOperations(name);
@@ -43,6 +43,8 @@ public class Node extends UntypedAbstractActor{
             else if(msg.equals("printRoutingTable")){
                 fingerTable.printFingerTable();
                 getSelf().tell("useAsAdministrator", ActorRef.noSender());
+            }else if(msg.equals("checkAllFiles")){
+                nfo.printTreeMap();
             }
         }
         else if(msg instanceof DestinationNode){
@@ -207,7 +209,7 @@ public class Node extends UntypedAbstractActor{
     private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException, InterruptedException {
         for (int i = 0; i < numOfNodes; i++) {
             PrimaryServerClass.getInstance().checkAndGenerateNode();
-            TimeUnit.SECONDS.sleep(4);
+            TimeUnit.SECONDS.sleep(10);
         }
     }
 

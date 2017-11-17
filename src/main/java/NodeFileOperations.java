@@ -171,9 +171,9 @@ class NodeFileOperations {
             }
 
         } else if (Integer.valueOf(fo.getSourceNode()) > predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode()) > Integer.valueOf(currentNode)) {
-            // example: predcessorNode = 1020 & newSourceNode = 1022 & currentNode = 200
+            // example: predcessorNode = 1010 & newSourceNode = 1072 & currentNode = 884
             entry = file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
-            while (entry!=null && entry.getKey()<=(Integer.valueOf(fo.getSourceNode()))){
+            while (entry!=null && entry.getKey()<=(Integer.valueOf(fo.getSourceNode())) && entry.getKey()>Integer.valueOf(currentNode)){
                 transferFileInternal(entry.getValue(), fo);
                 file_hash_value_to_fileName.remove(entry.getKey());
                 entry =  file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
@@ -207,15 +207,17 @@ class NodeFileOperations {
         getAllFiles(currDir);
         printTreeMap();
     }
-    private void printTreeMap(){
-        System.out.println("In tree map");
+    public void printTreeMap(){
+        System.out.println("\n\n");
         for(Map.Entry<Integer, TreeSet<String>> entry : file_hash_value_to_fileName.entrySet()){
             System.out.println("Files with hash value :"+entry.getKey());
             Iterator itr = entry.getValue().iterator();
             while (itr.hasNext()){
                 System.out.println("File Name :"+itr.next());
             }
+            System.out.println();
         }
+        System.out.println("\n\n");
     }
     private void getAllFiles(File curDir) throws IOException, NoSuchAlgorithmException {
         System.out.println("In get all files function");
