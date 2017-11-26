@@ -209,6 +209,10 @@ class NodeFileOperations {
     }
     public void printTreeMap(){
         System.out.println("\n\n");
+        if(file_hash_value_to_fileName.size()==0){
+            System.out.println("\n\n****** Currently there are no files on this server ******\n\n");
+            return;
+        }
         for(Map.Entry<Integer, TreeSet<String>> entry : file_hash_value_to_fileName.entrySet()){
             System.out.println("Files with hash value :"+entry.getKey());
             Iterator itr = entry.getValue().iterator();
@@ -220,21 +224,22 @@ class NodeFileOperations {
         System.out.println("\n\n");
     }
     private void getAllFiles(File curDir) throws IOException, NoSuchAlgorithmException {
-        System.out.println("In get all files function");
+//        System.out.println("In get all files function");
         if(curDir.isDirectory()){
             File[] filesList = curDir.listFiles();
-            for(File f : filesList){
-                if(f.isFile()){
-//                String hash = utl.generateHashString(f.getName(), PrimaryServerClass.getInstance().getLOG_N());
-                    int hashValue = utl.generateHashString(f.getName(), PrimaryServerClass.getInstance().getLOG_N());
+            for(File fileFromList : filesList){
+                if(fileFromList.isFile()){
+//                String hash = utl.generateHashString(fileFromList.getName(), PrimaryServerClass.getInstance().getLOG_N());
+                    int hashValue = utl.generateHashString(fileFromList.getName(), PrimaryServerClass.getInstance().getLOG_N());
 //                int hashValue = Integer.valueOf(hash);
+//                    System.out.println("Hash Value of File "+fileFromList.getName()+" is :"+hashValue);
                     TreeSet<String> files;
                     if(file_hash_value_to_fileName.containsKey(hashValue)){
                         files = file_hash_value_to_fileName.get(hashValue);
-                        files.add(f.getName());
+                        files.add(fileFromList.getName());
                     }else{
                         files = new TreeSet<String>();
-                        files.add(f.getName());
+                        files.add(fileFromList.getName());
                         file_hash_value_to_fileName.put(hashValue, files);
                     }
                 }

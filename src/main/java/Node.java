@@ -22,7 +22,7 @@ public class Node extends UntypedAbstractActor{
         this.nfo = new NodeFileOperations(name);
         fingerTable = new RoutingTable(name, getSelf());
         fingerTable.informActorsToUpdateRoutingTable();
-        fingerTable.loadBalance(nfo);
+//        fingerTable.loadBalance(nfo);
     }
     @Override
     public void onReceive(Object msg) throws Throwable {
@@ -209,7 +209,7 @@ public class Node extends UntypedAbstractActor{
     private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException, InterruptedException {
         for (int i = 0; i < numOfNodes; i++) {
             PrimaryServerClass.getInstance().checkAndGenerateNode();
-            TimeUnit.SECONDS.sleep(10);
+//            TimeUnit.SECONDS.sleep(10);
         }
     }
 
@@ -232,14 +232,15 @@ public class Node extends UntypedAbstractActor{
         return name;
     }
 }
-/*
-/Users/Gaurav/Downloads/test.csv
-Storing the file on node :1018
-
-/Users/Gaurav/Downloads/train.csv
-Storing the file on node :761
-
-/Users/Gaurav/Downloads/AES.c
-Storing the file on node :213
-
+/**
+ *
+ * /Users/Gaurav/Downloads/test.csv
+ * Storing the file on node :1018
+ *
+ * /Users/Gaurav/Downloads/train.csv
+ * Storing the file on node :761
+ *
+ * /Users/Gaurav/Downloads/AES.c
+ * Storing the file on node :213
+ *
  */
