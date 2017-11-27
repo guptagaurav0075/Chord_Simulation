@@ -22,7 +22,7 @@ public class Node extends UntypedAbstractActor{
         this.nfo = new NodeFileOperations(name);
         fingerTable = new RoutingTable(name, getSelf());
         fingerTable.informActorsToUpdateRoutingTable();
-//        fingerTable.loadBalance(nfo);
+        fingerTable.loadBalance(nfo);
     }
     @Override
     public void onReceive(Object msg) throws Throwable {
@@ -60,7 +60,12 @@ public class Node extends UntypedAbstractActor{
                     System.out.println("Number Of Hops to Reach from source node: "+((DestinationNode) msg).getSourceNode()+" to destination node: "+((DestinationNode) msg).getDestinationNode()+" is "+((DestinationNode) msg).getHopCount());
                     runAsServerChoice(name, ((DestinationNode) msg).getSourceNode());
                 }
-            }else if( ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getLOG_N() || ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getNUMBER_OF_NODES()-1){
+            }else if(fingerTable.fingerTable.size()==0){
+                System.out.println("No such Destination Node exist");
+                System.out.println("Returning to the source node");
+                runAsServerChoice(name, ((DestinationNode) msg).getSourceNode());
+            }
+            else if( ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getLOG_N() || ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getNUMBER_OF_NODES()-1){
                 System.out.println("No such Destination Node exist");
                 System.out.println("Returning to the source node");
                 runAsServerChoice(name, ((DestinationNode) msg).getSourceNode());
@@ -113,8 +118,8 @@ public class Node extends UntypedAbstractActor{
         runAsServerChoice(name, ((FileOperations) msg).getSourceNode());
     }
     private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
-        nfo.transferFiles(msg);
         System.out.println("In Load Balance Function");
+        nfo.transferFiles(msg);
         DestinationNode temp = new DestinationNode(name,msg.getSourceNode(),0,"DoneLoadBalance");
         getSelf().tell(temp, ActorRef.noSender());
 
@@ -126,8 +131,7 @@ public class Node extends UntypedAbstractActor{
             System.out.println("\t\t1->\tSelect a node to \"Run As Server.\"");
             System.out.println("\t\t2->\tUse current node as administrator");
             System.out.println("\t\t3->\tAdd new Node(s) to the Server");
-            System.out.println("\t\t4->\tRemove Node(s) from the Server");
-            System.out.println("\t\t5->\tStop Executing The Server.");
+            System.out.println("\t\t4->\tStop Executing The Server.");
 
             choice = in.nextInt();
             if(choice==1){
@@ -139,9 +143,6 @@ public class Node extends UntypedAbstractActor{
                 getSelf().tell("runInGeneral", ActorRef.noSender());
             }
             else if(choice==4){
-                removeNodes();
-            }
-            else if(choice==5){
                 PrimaryServerClass.getInstance().stopExecution();
                 break;
             }
@@ -152,41 +153,6 @@ public class Node extends UntypedAbstractActor{
 
         }while (choice<1 && choice>5);
     }
-
-    private void removeNodes() {
-        System.out.println("\nSelect one of the choices mentioned below\n");
-        System.out.println("\t\t1->Remove a specific server");
-        System.out.println("\t\t2->Remove a random server");
-        int choice = in.nextInt();
-        if(choice == 1 ) {
-            System.out.println("Enter the name of the server you would like to remove");
-            int serverName = in.nextInt();
-            boolean status = PrimaryServerClass.getInstance().checkServerExist(serverName);
-            if(status && !name.equals(String.valueOf(serverName))){ // given that the server exist and is not the current server
-                PrimaryServerClass.getInstance().removeServerNode(serverName);
-            }else{
-                System.out.println("No such server exist");
-            }
-        }else if(choice==2){
-            removeRandomNode();
-        }else{
-            System.out.println("Enter a valid choice");
-            removeNodes();
-        }
-    }
-    void transferFilesToSuccessorNode(){
-
-    }
-
-    private void removeRandomNode() {
-        int randomNode = 0+ (int) (Math.random() * PrimaryServerClass.getInstance().getNUMBER_OF_NODES());
-        if(randomNode == Integer.valueOf(name)){
-            removeRandomNode();
-        }else{
-            PrimaryServerClass.getInstance().removeServerNode(randomNode);
-        }
-    }
-
 
     private void addMoreNodes() throws IOException, NoSuchAlgorithmException, InterruptedException {
         System.out.println("Select one of the choices mentioned below\n");
@@ -209,7 +175,7 @@ public class Node extends UntypedAbstractActor{
     private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException, InterruptedException {
         for (int i = 0; i < numOfNodes; i++) {
             PrimaryServerClass.getInstance().checkAndGenerateNode();
-//            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(3);
         }
     }
 

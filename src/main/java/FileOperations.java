@@ -89,4 +89,11 @@ public class FileOperations {
     public String getHashValue() {
         return hashValue;
     }
+
+    public void printFileDesctiption(){
+        System.out.println("Source Node :"+sourceNode);
+        System.out.println("Predecessor Node :"+predecessorOfSourceNode);
+        System.out.println("Successor Node :"+successorOfSourceNode);
+
+    }
 }
