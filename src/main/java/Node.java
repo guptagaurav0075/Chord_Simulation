@@ -22,7 +22,7 @@ public class Node extends UntypedAbstractActor{
         this.nfo = new NodeFileOperations(name);
         fingerTable = new RoutingTable(name, getSelf());
         fingerTable.informActorsToUpdateRoutingTable();
-        fingerTable.loadBalance(nfo);
+//        fingerTable.loadBalance(nfo);
     }
     @Override
     public void onReceive(Object msg) throws Throwable {
@@ -175,7 +175,7 @@ public class Node extends UntypedAbstractActor{
     private void addNodes(int numOfNodes) throws IOException, NoSuchAlgorithmException, InterruptedException {
         for (int i = 0; i < numOfNodes; i++) {
             PrimaryServerClass.getInstance().checkAndGenerateNode();
-            TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(1);
         }
     }
 

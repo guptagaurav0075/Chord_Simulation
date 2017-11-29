@@ -186,20 +186,29 @@ public class RoutingTable {
         return fingerTable.lastKey();
     }
 
+    /*
+    successorNode function will return the successor node for a give Node A with identifier as key, if the key is present in the finger table
+    then the node is returned; otherwise the successor node for a given key is returned.
+     */
     public ActorRef successorNode(int key){
         if(fingerTable.ceilingEntry(key)!=null){
             return fingerTable.ceilingEntry(key).getValue();
         }
         return fingerTable.firstEntry().getValue();
     }
+
+    /*
+    getActorRefFromKey function will return the reference for the actor provided the key is present in the finger table.
+     */
     public ActorRef getActorRefFromKey(int key){
         if(fingerTable.containsKey(key))
             return fingerTable.get(key);
         return null;
     }
-    public void transferFileToSuccessorNode(){
 
-    }
+    /*
+    loadBalance is called when the node is created it helps in balancing the load provided among the nodes in the server.
+     */
     public void loadBalance(NodeFileOperations nfo) throws IOException, NoSuchAlgorithmException, InterruptedException {
         //function checks if there are any file on the server that were supposed to be for the current server
         if(fingerTable.size()<=0){
@@ -230,10 +239,14 @@ public class RoutingTable {
                 loadBalanceInternal(nfo, pred_Entry, "PredecessorLoadBalance");
         }*/
     }
+
+    /*
+    loadBalanceInternal is called from loadBalance function, it manges the call to be made to the proper node.
+     */
     private void loadBalanceInternal(NodeFileOperations nfo, Entry<Integer, ActorRef> entry, String purpose) throws IOException, NoSuchAlgorithmException, InterruptedException {
         FileOperations msg = new FileOperations(String.valueOf(entry.getKey()), String.valueOf(currentNode), nfo.directoryPath, purpose, String.valueOf(entry.getKey()), predecessorKey(currentNode), successorKey(currentNode));
-        System.out.println("\n**** In Routing Table File->loadBalanceInternalFunction ***");
-        System.out.println("Current Node: "+currentNode+"\nPredecessor Node: "+predecessorKey(currentNode)+"\n Successor Node"+successorKey(currentNode));
+//        System.out.println("\n**** In Routing Table File->loadBalanceInternalFunction ***");
+//        System.out.println("Current Node: "+currentNode+"\nPredecessor Node: "+predecessorKey(currentNode)+"\n Successor Node"+successorKey(currentNode));
         entry.getValue().tell(msg, ActorRef.noSender());
         TimeUnit.SECONDS.sleep(4);
     }

@@ -158,7 +158,7 @@ class NodeFileOperations {
         if(Integer.valueOf(fo.getSourceNode())<predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode())<Integer.valueOf(currentNode)){
             // example1: predcessorNode = 1022 & newSourceNode = 100 & currentNode = 200
             // example2: predcessorNode = 1022 & newSourceNode = 100 & currentNode = 1022
-            System.out.println("Source Node:"+fo.getSourceNode()+ "\n Current Node :"+currentNode+"\n Predecessor Node"+predecessorOfSourceNode);
+//            System.out.println("Source Node:"+fo.getSourceNode()+ "\n Current Node :"+currentNode+"\n Predecessor Node"+predecessorOfSourceNode);
             entry =  file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
             // transfer all the files which has hashValue stored in node 200 with values greater than 1022;
             while (entry!=null){

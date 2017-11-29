@@ -9,10 +9,5 @@ public class testClass {
         PrimaryServerClass PSC = PrimaryServerClass.getInstance();
         PSC.runInitialEntryPoint();
 
-//       @Deprecated
-        /*for (int i = 0; i < 1024; i++) {
-            PSC.addNode();
-        }
-        PSC.returnFirstNodeAsServer();*/
     }
 }
