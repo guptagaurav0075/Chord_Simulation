@@ -22,7 +22,7 @@ public class Node extends UntypedAbstractActor{
         this.nfo = new NodeFileOperations(name);
         fingerTable = new RoutingTable(name, getSelf());
         fingerTable.informActorsToUpdateRoutingTable();
-//        fingerTable.loadBalance(nfo);
+        fingerTable.loadBalance(nfo);
     }
     @Override
     public void onReceive(Object msg) throws Throwable {
@@ -53,7 +53,7 @@ public class Node extends UntypedAbstractActor{
                     getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("DoneLoadBalance")){
                     nfo.doneLoadBalance();
-                    System.out.println("Done Load Balancing");
+//                    System.out.println("Done Load Balancing");
                     return;
 //                    getSelf().tell("runInGeneral", ActorRef.noSender());
                 }else if(((DestinationNode) msg).getPurpose().equals("CheckHopCount")){
@@ -65,7 +65,7 @@ public class Node extends UntypedAbstractActor{
                 System.out.println("Returning to the source node");
                 runAsServerChoice(name, ((DestinationNode) msg).getSourceNode());
             }
-            else if( ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getLOG_N() || ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getNUMBER_OF_NODES()-1){
+            else if( ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getLOG_N() || ((DestinationNode) msg).getHopCount()>PrimaryServerClass.getInstance().getNUMBER_OF_NODES()){
                 System.out.println("No such Destination Node exist");
                 System.out.println("Returning to the source node");
                 runAsServerChoice(name, ((DestinationNode) msg).getSourceNode());
@@ -120,6 +120,7 @@ public class Node extends UntypedAbstractActor{
     private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
         System.out.println("In Load Balance Function");
         nfo.transferFiles(msg);
+        System.out.println("Done Load Balancing for Node :"+msg.getSourceNode());
         DestinationNode temp = new DestinationNode(name,msg.getSourceNode(),0,"DoneLoadBalance");
         getSelf().tell(temp, ActorRef.noSender());
 

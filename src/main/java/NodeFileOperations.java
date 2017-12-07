@@ -152,7 +152,7 @@ class NodeFileOperations {
         }
     }
     private void tranferFilesFromSuccessor(FileOperations fo, int hashOfCurrentNode, int predecessorOfSourceNode){
-        System.out.println("\n**** In NoadFileOperation File->transferFileFromSuccessor function ***");
+//        System.out.println("\n**** In NoadFileOperation File->transferFileFromSuccessor function ***");
         Map.Entry<Integer, TreeSet<String>> entry;
         predecessorOfSourceNode = predecessorOfSourceNode+1;
         if(Integer.valueOf(fo.getSourceNode())<predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode())<Integer.valueOf(currentNode)){
@@ -176,7 +176,7 @@ class NodeFileOperations {
 
         } else if (Integer.valueOf(fo.getSourceNode()) > predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode()) > Integer.valueOf(currentNode)) {
             // example: predcessorNode = 1010 & newSourceNode = 1072 & currentNode = 884
-            System.out.println("Source Node:"+fo.getSourceNode()+ "\n Current Node :"+currentNode+"\n Predecessor Node"+predecessorOfSourceNode);
+//            System.out.println("Source Node:"+fo.getSourceNode()+ "\n Current Node :"+currentNode+"\n Predecessor Node"+predecessorOfSourceNode);
             entry = file_hash_value_to_fileName.ceilingEntry(predecessorOfSourceNode);
             while (entry!=null && entry.getKey()<=(Integer.valueOf(fo.getSourceNode())) && entry.getKey()>Integer.valueOf(currentNode)){
                 transferFileInternal(entry.getValue(), fo);
@@ -186,7 +186,7 @@ class NodeFileOperations {
 
         } else if(Integer.valueOf(fo.getSourceNode()) > predecessorOfSourceNode && Integer.valueOf(fo.getSourceNode()) < Integer.valueOf(currentNode)) {
             // example: predcessorNode = 1000 & newSourceNode = 1012 & currentNode = 1020
-            System.out.println("Source Node:"+fo.getSourceNode()+ "\n Current Node :"+currentNode+"\n Predecessor Node"+predecessorOfSourceNode);
+//            System.out.println("Source Node:"+fo.getSourceNode()+ "\n Current Node :"+currentNode+"\n Predecessor Node"+predecessorOfSourceNode);
             entry = file_hash_value_to_fileName.firstEntry();
             while (entry != null && entry.getKey() <= Integer.valueOf(fo.getSourceNode())) {
                 transferFileInternal(entry.getValue(), fo);
@@ -211,7 +211,7 @@ class NodeFileOperations {
 //        System.out.println("Done Load Balancing");
         File currDir = new File(directoryPath);
         getAllFiles(currDir);
-        printTreeMap();
+//        printTreeMap();
     }
     public void printTreeMap(){
         System.out.println("\n\n");
