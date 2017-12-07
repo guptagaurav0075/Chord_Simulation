@@ -222,7 +222,7 @@ public class RoutingTable {
         }/*else{
             loadBalanceInternal(nfo, succ_Entry, "SuccessorLoadBalance");
         }*/
-        System.out.println("Successor Node is :"+succ_Entry.getKey());
+//        System.out.println("Successor Node is :"+succ_Entry.getKey());
         loadBalanceInternal(nfo, succ_Entry, "SuccessorLoadBalance");
 
         /*next = (currentNode - 1)%PSC.getMAX_N();

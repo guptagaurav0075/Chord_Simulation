@@ -118,7 +118,7 @@ public class Node extends UntypedAbstractActor{
         runAsServerChoice(name, ((FileOperations) msg).getSourceNode());
     }
     private void loadBalance(FileOperations msg) throws IOException, NoSuchAlgorithmException {
-        System.out.println("In Load Balance Function");
+//        System.out.println("In Load Balance Function");
         nfo.transferFiles(msg);
         System.out.println("Done Load Balancing for Node :"+msg.getSourceNode());
         DestinationNode temp = new DestinationNode(name,msg.getSourceNode(),0,"DoneLoadBalance");

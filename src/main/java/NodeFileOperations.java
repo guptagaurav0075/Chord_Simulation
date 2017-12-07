@@ -121,8 +121,8 @@ class NodeFileOperations {
     }
     public void transferFiles(FileOperations fo) throws IOException, NoSuchAlgorithmException {
 //        String hash = utl.generateHashString(fo.getSourceNode(), PrimaryServerClass.getInstance().getLOG_N());
-        System.out.println("In tansfer Files Operations");
-        fo.printFileDesctiption();
+//        System.out.println("In tansfer Files Operations");
+//        fo.printFileDesctiption();
         int hashValue = Integer.valueOf(currentNode);
         if(fo.getPurpose().equals("PredecessorLoadBalance"))
             tranferFilesFromPredecessor(fo, hashValue+1, fo.getSuccessorOfSourceNode());
